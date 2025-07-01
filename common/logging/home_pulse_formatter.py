@@ -32,7 +32,7 @@ class HomePulseFormatter(logging.Formatter):
         :return: python dictionary
         """
         result = collections.defaultdict()
-        if getattr(logging, '_mdc') is None:
+        if getattr(logging, '_mdc'):
             for c in (vars(ctx) for ctx in vars(getattr(logging, '_mdc')).values()):
                 result.update(c)
         return result

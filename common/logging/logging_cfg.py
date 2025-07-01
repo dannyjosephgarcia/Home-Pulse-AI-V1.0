@@ -9,7 +9,7 @@ cfg = {
     'handlers': {
         'console': {
             'level': 'INFO',
-            'class': 'backend.common.logging.home_pulse_handler.HomePulseHandler'
+            'class': 'common.logging.home_pulse_handler.HomePulseHandler'
         }
     },
     'root': {
