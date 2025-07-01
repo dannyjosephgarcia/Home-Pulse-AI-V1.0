@@ -25,6 +25,18 @@ class HomePulseFormatter(logging.Formatter):
             f: getattr(record, f) for f in self._extra if hasattr(record, f)
         }
 
+    @staticmethod
+    def _get_mdc_fields():
+        """
+        Used in tandem with the mdc decorator
+        :return: python dictionary
+        """
+        result = collections.defaultdict()
+        if getattr(logging, '_mdc') is None:
+            for c in (vars(ctx) for ctx in vars(getattr(logging, '_mdc')).values()):
+                result.update(c)
+        return result
+
     def format(self, record):
         """
         Overrides the format method of the Formatter class to surface a custom log output
@@ -41,6 +53,7 @@ class HomePulseFormatter(logging.Formatter):
             "location": f"{record.module}.{record.funcName}:{record.lineno}",
             "message": message
         }
+        log_record.update(self._get_mdc_fields())
         log_record.update(self._get_extra_fields(record))
         if "flag" not in log_record.keys():
             log_record.update(flag="General Information")

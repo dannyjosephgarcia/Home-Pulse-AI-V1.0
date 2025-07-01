@@ -1,13 +1,12 @@
 import sys
 import logging
-from home_pulse_formatter import HomePulseFormatter
+from mdc import MDCHandler
+from backend.common.logging.home_pulse_formatter import HomePulseFormatter
 CONTEXT_FIELDS = ['domain', 'subdomain', 'flag', 'information', 'timing', 'methodOutput', 'request']
 
 
-class HomePulseHandler(logging.StreamHandler):
-    def __init__(self, stream=None, extra_fields=None):
-        stream = stream or sys.stdout
-        super().__init__(stream=stream)
-
-        formatter = HomePulseFormatter(extra=extra_fields or {})
+class HomePulseHandler(MDCHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        formatter = HomePulseFormatter(extra=CONTEXT_FIELDS)
         self.setFormatter(formatter)
