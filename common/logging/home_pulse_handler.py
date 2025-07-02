@@ -1,7 +1,5 @@
-import sys
-import logging
 from mdc import MDCHandler
-from backend.common.logging.home_pulse_formatter import HomePulseFormatter
+from common.logging.home_pulse_formatter import HomePulseFormatter
 CONTEXT_FIELDS = ['domain', 'subdomain', 'flag', 'information', 'timing', 'methodOutput', 'request']
 
 

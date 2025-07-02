@@ -1,4 +1,4 @@
-from error_code import ErrorCode
+from common.logging.error.error_code import ErrorCode
 
 INVALID_REQUEST = ErrorCode(code="INVALID_REQUEST",
                             message="The request to the route is invalid",
