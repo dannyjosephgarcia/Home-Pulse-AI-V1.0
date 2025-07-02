@@ -1,12 +1,12 @@
+import os
 import logging.config
 from flask import Flask
-from container import Container
-import os
-from security.csrf import csrf
-from common.logging.logging_cfg import logging_cfg
-from backend.redfin_scraper.routes import housing_market_routes as housing_market_routes
-from backend.redfin_scraper.routes.housing_market_routes import housing_market_bluprint
 from waitress import serve
+from security.csrf import csrf
+from backend.app.container import Container
+from common.logging.logging_cfg import logging_cfg
+from backend.redfin_scraper.routes import housing_market_routes
+from backend.redfin_scraper.routes.housing_market_routes import housing_market_bluprint
 
 
 def create_app():
