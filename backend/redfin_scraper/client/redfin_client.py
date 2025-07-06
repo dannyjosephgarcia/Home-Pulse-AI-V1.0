@@ -35,7 +35,7 @@ class RedfinClient:
             page = browser.new_page()
 
             # Navigate to Redfin home
-            page.goto("https://www.redfin.com", wait_until="load")
+            page.goto("https://www.redfin.com/zipcode/60452", wait_until="load")
 
             # Type ZIP code into search box and submit
             page.wait_for_selector('#search-box-input', timeout=10000)
