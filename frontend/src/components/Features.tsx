@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, MapPin, TrendingUp, Shield } from 'lucide-react';
 
 const Features = () => {
