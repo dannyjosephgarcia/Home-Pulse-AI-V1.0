@@ -22,7 +22,7 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2">
             <Home className="h-8 w-8 text-blue-400" />
-            <span className="text-xl font-bold text-white">RealEstate Pro</span>
+            <span className="text-xl font-bold text-white">Home Pulse AI</span>
           </div>
 
           {/* Desktop Menu */}
