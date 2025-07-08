@@ -7,20 +7,20 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ scrollY }) => {
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center px-4">
+    <section id="home" className="relative min-h-screen flex items-center justify-center px-4 overflow-visible pt-20 pb-20">
       <div
         className="text-center max-w-4xl mx-auto transform transition-transform duration-1000"
         style={{ transform: `translateY(${scrollY * 0.2}px)` }}
       >
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
           Find Your
-          <span className="block bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            Dream Home
+          <span className="block bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent pb-4">
+            Next Property
           </span>
         </h1>
 
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
-          Discover the perfect property with our advanced search tools and expert guidance
+          Budget for your next investment with our advanced search tools and AI models
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
