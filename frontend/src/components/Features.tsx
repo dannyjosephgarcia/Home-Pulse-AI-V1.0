@@ -1,4 +1,4 @@
-import { Search, MapPin, TrendingUp, Shield } from 'lucide-react';
+import { Search, MapPin, TrendingUp, Crosshair } from 'lucide-react';
 
 const Features = () => {
   const features = [
@@ -8,19 +8,19 @@ const Features = () => {
       description: "Find properties with our powerful filtering system and detailed search criteria."
     },
     {
-      icon: <MapPin className="h-12 w-12 text-green-400" />,
+      icon: <MapPin className="h-12 w-12 text-purple-400" />,
       title: "Location Insights",
       description: "Get detailed neighborhood information, schools, and local amenities data."
     },
     {
-      icon: <TrendingUp className="h-12 w-12 text-purple-400" />,
+      icon: <TrendingUp className="h-12 w-12 text-blue-400" />,
       title: "Market Analytics",
       description: "Access real-time market trends and property value predictions."
     },
     {
-      icon: <Shield className="h-12 w-12 text-yellow-400" />,
-      title: "Secure Transactions",
-      description: "Protected deals with verified listings and secure payment processing."
+      icon: <Crosshair className="h-12 w-12 text-purple-400" />,
+      title: "Accurate Predictions",
+      description: "Optimize your rehabilitation budget using our suit of Machine Learning models."
     }
   ];
 
@@ -32,7 +32,7 @@ const Features = () => {
             Why Choose Us
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            We provide the most comprehensive real estate tools to help you make informed decisions
+            We provide the most comprehensive real estate investing tools to help you make informed decisions
           </p>
         </div>
 
