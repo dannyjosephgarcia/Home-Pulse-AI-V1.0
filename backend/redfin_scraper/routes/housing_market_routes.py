@@ -22,6 +22,7 @@ def fetch_market_houses(ctx, redfin_housing_data_extraction_service=
     logging.info(START_OF_METHOD)
     request_json = dict(request.args)
     fetch_houses_request = RedfinFetchHousesRequest(request_json)
-    response = redfin_housing_data_extraction_service.execute_redfin_housing_data_retrieval(fetch_houses_request)
+    # response = redfin_housing_data_extraction_service.execute_redfin_housing_data_retrieval(fetch_houses_request)
+    response = {'postalCode': fetch_houses_request.postal_code}
     logging.info(END_OF_METHOD)
     return jsonify(response)
