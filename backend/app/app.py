@@ -26,7 +26,7 @@ def create_app():
 
 
 app = create_app()
-port = os.getenv('PORT')
+port = int(os.getenv('PORT'))
 
 
 @app.route('/api/healthcheck', methods=['GET'])
