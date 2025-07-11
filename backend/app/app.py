@@ -26,6 +26,7 @@ def create_app():
 
 
 app = create_app()
+port = int(os.getenv('PORT'))
 
 
 @app.route('/api/healthcheck', methods=['GET'])
@@ -38,6 +39,6 @@ if __name__ == "__main__":
     env = os.getenv('ENV')
     app.logger.info("Starting Home Pulse app with Waitress...")
     if env == 'prod':
-        app.run(host='0.0.0.0', port=5000)
+        app.run(host='0.0.0.0', port=port)
     else:
-        serve(app, host='0.0.0.0', port=5000)
+        serve(app, host='0.0.0.0', port=port)
