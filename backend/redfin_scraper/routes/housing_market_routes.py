@@ -3,7 +3,7 @@ import uuid
 from dependency_injector.wiring import inject, Provide
 from flask import Blueprint, jsonify, request
 from backend.app.container import Container
-from security.csrf import csrf
+from backend.security.csrf import csrf
 from backend.redfin_scraper.model.redfin_fetch_houses_request import RedfinFetchHousesRequest
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 import logging
