@@ -22,7 +22,7 @@ const SearchForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/search?zipcode=${zipcode}`, {
+      const response = await fetch(`http://localhost:5000/v1/fetch_houses?postalCode=${zipcode}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
