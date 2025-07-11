@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: home-pulse-api
+    runtime: python
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: python app.py
+    envVars:
+      - key: ENV
+        value: prod

@@ -1,6 +1,7 @@
 import os
 import logging.config
 from flask import Flask
+from flask_cors import CORS
 from waitress import serve
 from security.csrf import csrf
 from backend.app.container import Container
@@ -13,6 +14,9 @@ def create_app():
     container = Container()
     flask_app = Flask(__name__)
     flask_app.container = container
+
+    CORS(flask_app)
+
     flask_app.register_blueprint(housing_market_bluprint)
     flask_app.container.wire(modules=[housing_market_routes])
     csrf.init_app(flask_app)
