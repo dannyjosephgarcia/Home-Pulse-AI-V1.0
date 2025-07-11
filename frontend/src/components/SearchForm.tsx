@@ -22,7 +22,7 @@ const SearchForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/v1/fetch_houses?postalCode=${zipcode}`, {
+      const response = await fetch(`https://home-pulse-api.onrender.com/v1/fetch_houses?postalCode=${zipcode}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
