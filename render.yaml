@@ -1,7 +1,7 @@
 services:
   - type: web
     name: home-pulse-api
-    runtime: python-3.10
+    runtime: python
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
