@@ -3,7 +3,7 @@ import logging.config
 from flask import Flask
 from flask_cors import CORS
 from waitress import serve
-from security.csrf import csrf
+from backend.security.csrf import csrf
 from backend.app.container import Container
 from common.logging.logging_cfg import logging_cfg
 from backend.redfin_scraper.routes import housing_market_routes
