@@ -1,6 +1,7 @@
 import os
 import logging.config
 from flask import Flask
+import sys
 from flask_cors import CORS
 from waitress import serve
 from backend.security.csrf import csrf
@@ -8,6 +9,8 @@ from backend.app.container import Container
 from common.logging.logging_cfg import logging_cfg
 from backend.redfin_scraper.routes import housing_market_routes
 from backend.redfin_scraper.routes.housing_market_routes import housing_market_bluprint
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
 def create_app():
