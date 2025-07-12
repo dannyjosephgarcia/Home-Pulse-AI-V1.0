@@ -1,3 +1,8 @@
 redfin:
   base_url: https://www.redfin.com/stingray/do/location-autocomplete
   user_agent: ${USER_AGENT}
+home_pulse_ai_db:
+  host: ${MYSQL_HOST}
+  user: ${MYSQL_USER}
+  pass: ${MYSQL_PASS}
+  db:  ${MYSQL_DB}
