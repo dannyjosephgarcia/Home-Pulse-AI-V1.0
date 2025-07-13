@@ -4,5 +4,5 @@ redfin:
 home_pulse_ai_db:
   host: ${MYSQL_HOST}
   user: ${MYSQL_USER}
-  pass: ${MYSQL_PASS}
+  password: ${MYSQL_PASS}
   db:  ${MYSQL_DB}

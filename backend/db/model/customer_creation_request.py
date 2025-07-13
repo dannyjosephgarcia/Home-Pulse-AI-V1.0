@@ -1,8 +1,8 @@
-import logging
 import re
+import logging
+from common.logging.error.error import Error
 from common.logging.error.error_messages import INVALID_REQUEST
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
-from common.logging.error.error import Error
 
 
 class CustomerCreationRequest:
