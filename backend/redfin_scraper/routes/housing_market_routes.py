@@ -1,12 +1,12 @@
 import mdc
 import uuid
-from dependency_injector.wiring import inject, Provide
-from flask import Blueprint, jsonify, request
-from backend.app.container import Container
-from backend.security.csrf import csrf
-from backend.redfin_scraper.model.redfin_fetch_houses_request import RedfinFetchHousesRequest
-from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 import logging
+from backend.security.csrf import csrf
+from backend.app.container import Container
+from flask import Blueprint, jsonify, request
+from dependency_injector.wiring import inject, Provide
+from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
+from backend.redfin_scraper.model.redfin_fetch_houses_request import RedfinFetchHousesRequest
 
 
 housing_market_bluprint = Blueprint('housing_market_blueprint', __name__)

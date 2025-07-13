@@ -45,11 +45,11 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-blue-400" />
-                <span className="text-gray-300">info@realestatepro.com</span>
+                <span className="text-gray-300">homepulseai@gmail.com.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-blue-400" />
-                <span className="text-gray-300">(555) 123-4567</span>
+                <span className="text-gray-300">(708) 673-2131</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-blue-400" />
@@ -61,7 +61,7 @@ const Footer = () => {
 
         <div className="border-t border-white/10 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 RealEstate Pro. All rights reserved. Built with modern technology for the modern home buyer.
+            © 2025 Next Level Coding, LLC. All rights reserved. Built with modern technology for the modern investor.
           </p>
         </div>
       </div>
