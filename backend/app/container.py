@@ -9,7 +9,7 @@ from backend.db.service.customer_creation_insertion_service import CustomerCreat
 
 class Container(containers.DeclarativeContainer):
     env = os.getenv('ENV')
-    config = providers.Configuration(yaml_files=[f"./config-{env}.yaml"])
+    config = providers.Configuration(yaml_files=[f"./backend/app/config-{env}.yaml"])
 
     redfin_client = providers.Singleton(RedfinClient,
                                         config.redfin.base_url,

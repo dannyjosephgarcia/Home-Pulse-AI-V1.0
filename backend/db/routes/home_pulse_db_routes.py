@@ -1,12 +1,12 @@
-import logging
+import mdc
 import uuid
-from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
+import logging
+from backend.security.csrf import csrf
+from backend.app.container import Container
 from flask import jsonify, request, Blueprint
 from dependency_injector.wiring import inject, Provide
-from backend.app.container import Container
-import mdc
+from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from backend.db.model.customer_creation_request import CustomerCreationRequest
-from backend.security.csrf import csrf
 
 home_pulse_db_routes_blueprint = Blueprint('home_pulse_db_routes_blueprint', __name__)
 

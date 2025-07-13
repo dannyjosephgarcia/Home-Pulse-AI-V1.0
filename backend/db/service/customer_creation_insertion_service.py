@@ -41,7 +41,7 @@ class CustomerCreationInsertionService:
         try:
             cnx = self.hp_ai_db_connection_pool.get_connection()
             cursor = cnx.cursor()
-            cursor.execute(INSERT_CUSTOMER_INTO_USER_TABLE, [email, hashed_password])
+            cursor.execute(INSERT_CUSTOMER_INTO_USER_TABLE, [email, hashed_password, 'abc123', 0])
             cnx.commit()
             cursor.close()
             cnx.close()
