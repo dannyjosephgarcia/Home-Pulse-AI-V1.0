@@ -20,6 +20,7 @@ class Container(containers.DeclarativeContainer):
 
     home_pulse_db_connection_pool = providers.Singleton(HpAIDbConnectionPool,
                                                         config.home_pulse_ai_db.host,
+                                                        config.home_pulse_ai_db.port,
                                                         config.home_pulse_ai_db.user,
                                                         config.home_pulse_ai_db.password,
                                                         config.home_pulse_ai_db.db)

@@ -73,6 +73,8 @@ class CustomerCreationInsertionService:
                 'isPaid': table[0][4],
                 'createdAt': table[0][5]
             }
+            cursor.close()
+            cnx.close()
             logging.info(END_OF_METHOD)
             return response
         except Exception as e:

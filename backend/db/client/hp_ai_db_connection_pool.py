@@ -6,8 +6,9 @@ from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
 
 
 class HpAIDbConnectionPool:
-    def __init__(self, host, user, password, db):
+    def __init__(self, host, port, user, password, db):
         self.host = host
+        self.port = port
         self.user = user
         self.password = password
         self.db = db
@@ -22,6 +23,7 @@ class HpAIDbConnectionPool:
         try:
             db_config = {
                 'database': self.db,
+                'port': self.port,
                 'host': self.host,
                 'user': self.user,
                 'password': self.password
