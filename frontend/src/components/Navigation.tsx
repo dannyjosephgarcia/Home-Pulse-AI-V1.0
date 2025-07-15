@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,7 +33,10 @@ const Navigation = () => {
             <a href="#features" className="text-white hover:text-blue-400 transition-colors">Features</a>
             <a href="#search" className="text-white hover:text-blue-400 transition-colors">Search</a>
             <a href="#testimonials" className="text-white hover:text-blue-400 transition-colors">Reviews</a>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+            <button
+              onClick={() => navigate('/login')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+            >
               Get Started
             </button>
           </div>
@@ -53,7 +58,10 @@ const Navigation = () => {
               <a href="#features" className="block px-3 py-2 text-white hover:text-blue-400">Features</a>
               <a href="#search" className="block px-3 py-2 text-white hover:text-blue-400">Search</a>
               <a href="#testimonials" className="block px-3 py-2 text-white hover:text-blue-400">Reviews</a>
-              <button className="w-full text-left px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg mt-2">
+              <button
+                onClick={() => navigate('/login')}
+                className="w-full text-left px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg mt-2"
+              >
                 Get Started
               </button>
             </div>
