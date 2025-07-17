@@ -16,6 +16,7 @@ interface Structure {
 interface Property {
   postalCode: string;
   homeAge: number;
+  homeAddress: string;
   appliances: Appliance[];
   structures: Structure[];
 }
@@ -25,6 +26,7 @@ const Properties = () => {
     {
       postalCode: '',
       homeAge: 0,
+      homeAddress: '',
       appliances: [
         { name: 'Stove', age: 0 },
         { name: 'Dishwasher', age: 0 },
@@ -49,6 +51,7 @@ const Properties = () => {
     setProperties([...properties, {
       postalCode: '',
       homeAge: 0,
+      homeAddress: '',
       appliances: [
         { name: 'Stove', age: 0 },
         { name: 'Dishwasher', age: 0 },
@@ -251,6 +254,21 @@ const Properties = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Home Address */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-white/90 text-sm font-medium">
+                        Home Address
+                      </label>
+                      <input
+                        type="text"
+                        value={property.homeAddress || ""}
+                        onChange={(e) => updateProperty(propertyIndex, 'homeAddress', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                        placeholder="123 Main St, City, State"
+                        disabled={isLoading}
+                      />
+                    </div>
                 </div>
 
                 {/* Appliances */}
