@@ -1,4 +1,13 @@
 INSERT_CUSTOMER_INTO_USER_TABLE = """INSERT INTO home_pulse_ai.users 
-(email, hashed_password, stripe_customer_id, is_paid) VALUES (%s, %s, %s, %s)"""
+(email, hashed_password, stripe_customer_id, is_paid) VALUES (%s, %s, %s, %s);"""
 
-SELECT_CUSTOMER_FROM_USER_TABLE = """SELECT * FROM home_pulse_ai.users WHERE email=%s"""
+SELECT_CUSTOMER_FROM_USER_TABLE = """SELECT * FROM home_pulse_ai.users WHERE email=%s;"""
+
+INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE = """INSERT INTO home_pulse_ai.properties 
+(user_id, postal_code, age, address) VALUES (%s, %s, %s, %s);"""
+
+INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE = """INSERT INTO home_pulse_ai.appliances 
+(property_id, appliance_type, age_in_years) VALUES (%s, %s, %s);"""
+
+INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE = """INSERT INTO home_pulse_ai.structures 
+(property_id, structure_type, age_in_years) VALUES (%s, %s, %s);"""

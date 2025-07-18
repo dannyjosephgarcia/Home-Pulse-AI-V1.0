@@ -24,3 +24,21 @@ def insert_customer_into_user_table(ctx,
     response = customer_creation_insertion_service.insert_new_customer_into_user_table(customer_creation_request)
     logging.info(END_OF_METHOD)
     return jsonify(response)
+
+
+@home_pulse_db_routes_blueprint.route('/v1/customers/properties', methods=['POST'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/customers')
+@csrf.exempt
+@inject
+def insert_property_information_into_table(ctx,
+                                           property_creation_insertion_service=
+                                           Provide[Container.property_creation_insertion_service]):
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    logging.info(START_OF_METHOD)
+    # TODO: Need to pass the userId using advanced session/state handling
+    user_id = 21
+    request_json = request.get_json()
+    property_creation_requests = property_creation_insertion_service.construct_property_creation_requests(user_id,
+                                                                                                          request_json)
+    response = property_creation_insertion_service.insert_properties_into_db(user_id, property_creation_requests)
+    return jsonify(response)
