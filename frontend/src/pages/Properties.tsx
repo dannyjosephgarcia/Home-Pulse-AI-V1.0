@@ -124,13 +124,15 @@ const Properties = () => {
       const payload = properties.map(property => ({
         postalCode: property.postalCode.trim(),
         homeAge: property.homeAge,
+        homeAddress: property.homeAddress,
         appliances: property.appliances.reduce((acc, appliance) => {
           acc[appliance.name.toLowerCase()] = appliance.age;
           return acc;
         }, {} as Record<string, number>),
         structures: property.structures.reduce((acc, structure) => {
             acc[structure.name.toLowerCase()] = structure.age;
-            }, {} as Record<string, number>)
+            return acc;
+        }, {} as Record<string, number>)
       }));
 
       const response = await fetch('https://home-pulse-api.onrender.com/v1/customers/appliances', {

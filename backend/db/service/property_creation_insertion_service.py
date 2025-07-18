@@ -1,7 +1,8 @@
 import logging
-from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
+from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
+from backend.db.model.property_creation_request import PropertyCreationRequest
 from backend.db.model.query.sql_statements import (INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE,
                                                    INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE,
                                                    INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE)
@@ -9,7 +10,7 @@ from backend.db.model.query.sql_statements import (INSERT_CUSTOMER_PROPERTY_INTO
 
 class PropertyCreationInsertionService:
     def __init__(self, hp_ai_db_connection_pool):
-        self.pool = hp_ai_db_connection_pool
+        self.pool = hp_ai_db_connection_pool.pool
 
     def insert_properties_into_db(self, user_id, property_creation_requests):
         """
@@ -20,12 +21,10 @@ class PropertyCreationInsertionService:
         """
         logging.info(START_OF_METHOD)
         cnx = self.obtain_connection()
-        property_data, properties = self.format_properties_for_table_insertion(
+        insert_property_record_status, properties = self.execute_insertion_statement_for_properties_table(
+            cnx=cnx,
             user_id=user_id,
             property_creation_requests=property_creation_requests)
-        insert_property_record_status, property_data = self.execute_insertion_statement_for_properties_table(
-            cnx=cnx,
-            property_data=property_data)
         insert_appliance_record_status, appliance_data = self.execute_insertion_statement_for_appliances_table(
             cnx=cnx,
             properties=properties)
@@ -36,7 +35,7 @@ class PropertyCreationInsertionService:
             insert_property_record_status=insert_property_record_status,
             insert_appliance_record_status=insert_appliance_record_status,
             insert_structures_record_status=insert_structures_record_status,
-            property_data=property_data,
+            property_data=properties,
             appliance_data=appliance_data,
             structure_data=structure_data)
         cnx.close()
@@ -44,27 +43,35 @@ class PropertyCreationInsertionService:
         return response
 
     @staticmethod
-    def execute_insertion_statement_for_properties_table(cnx, property_data):
+    def execute_insertion_statement_for_properties_table(cnx, user_id, property_creation_requests):
         """
         Performs the actual insertion of a property into the property table
         :param cnx: The MySQLConnectionPool connection
-        :param property_data: python tuple,
+        :param user_id
+        :param property_creation_requests:
         :return:
         """
         logging.info(START_OF_METHOD)
         insert_property_record_status = 200
+        properties = {}
         try:
             cursor = cnx.cursor()
-            cursor.executemany(INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE, property_data)
-            cnx.commit()
+            for i in range(len(property_creation_requests)):
+                property_data = (user_id, property_creation_requests[i].postal_code,
+                                 property_creation_requests[i].home_age, property_creation_requests[i].home_address)
+                cursor.execute(INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE, property_data)
+                cnx.commit()
+                property_id = cursor.lastrowid
+                properties[property_id] = property_creation_requests[i]
             cursor.close()
         except Exception as e:
             logging.error('An issue occurred inserting a property into the property table',
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
             insert_property_record_status = 500
+            cnx.rollback()
         logging.info(END_OF_METHOD)
-        return insert_property_record_status, property_data
+        return insert_property_record_status, properties
 
     @classmethod
     def execute_insertion_statement_for_appliances_table(cls, cnx, properties):
@@ -86,8 +93,9 @@ class PropertyCreationInsertionService:
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
             insert_appliances_status = 500
+            cnx.rollback()
         logging.info(END_OF_METHOD)
-        return insert_appliances_status
+        return insert_appliances_status, appliance_data
 
     @classmethod
     def execute_insertion_statement_for_structures_table(cls, cnx, properties):
@@ -101,16 +109,18 @@ class PropertyCreationInsertionService:
         insert_structures_status = 200
         structures_data = cls.format_structures_for_table_insertion(properties=properties)
         try:
-            cursor = cnx.get_cursor()
+            cursor = cnx.cursor()
             cursor.executemany(INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE, structures_data)
+            cursor.close()
             cnx.commit()
         except Exception as e:
             logging.error('An issue occurred inserting items into the structures table',
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
             insert_structures_status = 500
+            cnx.rollback()
         logging.info(END_OF_METHOD)
-        return insert_structures_status
+        return insert_structures_status, structures_data
 
     @staticmethod
     def format_property_creation_response(insert_property_record_status,
@@ -130,13 +140,32 @@ class PropertyCreationInsertionService:
         :return: python dict
         """
         logging.info(START_OF_METHOD)
+        appliances = {}
+        structures = {}
+        for app in appliance_data:
+            property_id = app[0]
+            appliance_name = app[1]
+            appliance_age = app[2]
+            pairing = {appliance_name: appliance_age}
+            if property_id in appliances:
+                appliances[property_id].append(pairing)
+            else:
+                appliances[property_id] = [pairing]
+        for struct in structure_data:
+            property_id = struct[0]
+            structure_name = struct[1]
+            structure_age = struct[2]
+            pairing = {structure_name: structure_age}
+            if property_id in structures:
+                structures[property_id].append(pairing)
+            else:
+                structures[property_id] = [pairing]
         response = {
             'propertyRecordStatus': insert_property_record_status,
             'applianceRecordStatus': insert_appliance_record_status,
             'applianceStructuresStatus': insert_structures_record_status,
-            'propertiesTableResponse': property_data,
-            'appliancesTableResponse': appliance_data,
-            'structuresTableResponse': structure_data
+            'appliancesTableResponse': appliances,
+            'structuresTableResponse': structures
         }
         logging.info(END_OF_METHOD)
         return response
@@ -150,26 +179,6 @@ class PropertyCreationInsertionService:
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
             raise Error(INTERNAL_SERVICE_ERROR)
-
-    @staticmethod
-    def format_properties_for_table_insertion(user_id, property_creation_requests):
-        """
-        Formates
-        :param user_id:
-        :param property_creation_requests:
-        :return: python tuple
-        """
-        data = []
-        properties = {}
-        for property_id in range(1, len(property_creation_requests) + 1):
-            entry = (user_id,
-                     property_creation_requests[property_id].postal_code,
-                     property_creation_requests[property_id].home_age,
-                     property_creation_requests[property_id].home_address)
-            data.append(entry)
-            properties[property_id] = property_creation_requests[property_id]
-        return data, properties
-
 
     @staticmethod
     def format_appliances_for_table_insertion(properties):
@@ -200,3 +209,22 @@ class PropertyCreationInsertionService:
                 entry = (property_id, structure_name, structure_age)
                 data.append(entry)
         return data
+
+    @staticmethod
+    def construct_property_creation_requests(user_id, request_json):
+        """
+        Method constructs a list of PropertyCreationRequest objects
+        :param user_id: The internal identifier of the logged in user
+        :param request_json: python dict, the request to the route
+        :return: python list
+        """
+        logging.info(START_OF_METHOD)
+        property_creation_requests = []
+        size = len(request_json)
+        if size > 0:
+            for i in range(size):
+                single_request = request_json[i]
+                property_creation_request = PropertyCreationRequest(user_id, single_request)
+                property_creation_requests.append(property_creation_request)
+        logging.info(END_OF_METHOD)
+        return property_creation_requests

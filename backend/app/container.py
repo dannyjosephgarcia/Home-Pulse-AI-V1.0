@@ -5,6 +5,7 @@ from backend.redfin_scraper.client.redfin_client import RedfinClient
 from backend.db.client.hp_ai_db_connection_pool import HpAIDbConnectionPool
 from backend.redfin_scraper.service.redfin_housing_data_extraction_service import RedfinHousingDataExtractionService
 from backend.db.service.customer_creation_insertion_service import CustomerCreationInsertionService
+from backend.db.service.property_creation_insertion_service import PropertyCreationInsertionService
 
 
 class Container(containers.DeclarativeContainer):
@@ -26,4 +27,7 @@ class Container(containers.DeclarativeContainer):
                                                         config.home_pulse_ai_db.db)
 
     customer_creation_insertion_service = providers.Singleton(CustomerCreationInsertionService,
+                                                              home_pulse_db_connection_pool)
+
+    property_creation_insertion_service = providers.Singleton(PropertyCreationInsertionService,
                                                               home_pulse_db_connection_pool)

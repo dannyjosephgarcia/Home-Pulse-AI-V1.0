@@ -7,20 +7,20 @@ from common.helpers.model_helpers import validate_subfield_types
 
 class Appliances:
     def __init__(self, appliances):
-        self.stove = int(appliances['Stove'])
-        self.dishwasher = int(appliances['Dishwasher'])
-        self.dryer = int(appliances['Dryer'])
-        self.refrigerator = int(appliances['Refrigerator'])
-        self.washer = int(appliances['Washer'])
+        self.stove = int(appliances['stove'])
+        self.dishwasher = int(appliances['dishwasher'])
+        self.dryer = int(appliances['dryer'])
+        self.refrigerator = int(appliances['refrigerator'])
+        self.washer = int(appliances['washer'])
 
 
 class Structures:
     def __init__(self, structures):
-        self.roof = int(structures['Roof'])
-        self.driveway = int(structures['Driveway'])
-        self.water_heater = int(structures['Water Heater'])
-        self.furnace = int(structures['Furnace'])
-        self.ac_unit = int(structures['A/C Unit'])
+        self.roof = int(structures['roof'])
+        self.driveway = int(structures['driveway'])
+        self.water_heater = int(structures['water heater'])
+        self.furnace = int(structures['furnace'])
+        self.ac_unit = int(structures['a/c unit'])
 
 
 class PropertyCreationRequest:
@@ -66,7 +66,7 @@ class PropertyCreationRequest:
         :param appliances: python dict, the dictionary of appliance information
         :return:
         """
-        appliance_fields = ['Stove', 'Dishwasher', 'Dryer', 'Refrigerator', 'Washer']
+        appliance_fields = ['stove', 'dishwasher', 'dryer', 'refrigerator', 'washer']
         for field in appliance_fields:
             if not validate_subfield_types(appliances, field, int):
                 logging.error('An appliance age is not of the correct datatype')
@@ -79,7 +79,7 @@ class PropertyCreationRequest:
         :param structures: python dict, the dictionary of appliance information
         :return:
         """
-        structure_fields = ['Roof', 'Driveway', 'Water Heater', 'Furnace', 'A/C Unit']
+        structure_fields = ['roof', 'driveway', 'water heater', 'furnace', 'a/c unit']
         for field in structure_fields:
             if not validate_subfield_types(structures, field, int):
                 logging.error('A structure age is not of the correct datatype')
