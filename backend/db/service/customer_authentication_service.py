@@ -31,7 +31,9 @@ class CustomerAuthenticationService:
             password=password,
             user_results=user_results)
         cnx.close()
-        response = {"token": valid_jwt_token}
+        response = {"token": valid_jwt_token,
+                    "user": {"id": user_results[0][0],
+                             "email": user_results[0][1]}}
         logging.info(END_OF_METHOD)
         return response
 
