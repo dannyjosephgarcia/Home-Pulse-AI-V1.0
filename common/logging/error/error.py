@@ -10,7 +10,7 @@ class Error(Exception):
         :param message: The message to display for an error to be handled
         :param status: The HTTP status code of the error
         """
-        self.code = code
+        self.code = code.code
         self.message = message or code.message
         self.status = status or code.status
         self.correlation_id = correlation_id

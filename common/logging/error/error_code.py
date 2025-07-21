@@ -9,5 +9,3 @@ class ErrorCode:
         self.code = code
         self.message = message
         self.status = status
-
-

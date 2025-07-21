@@ -1,7 +1,9 @@
-import bcrypt
 import logging
+from flask_bcrypt import Bcrypt
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from backend.db.model.query.sql_statements import INSERT_CUSTOMER_INTO_USER_TABLE, SELECT_CUSTOMER_FROM_USER_TABLE
+
+bcrypt = Bcrypt()
 
 
 class CustomerCreationInsertionService:
@@ -91,7 +93,7 @@ class CustomerCreationInsertionService:
         :return: python str, a hashed version of the password
         """
         logging.info(START_OF_METHOD)
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         logging.info(END_OF_METHOD)
         return hashed_password
 
