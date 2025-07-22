@@ -7,3 +7,5 @@ home_pulse_ai_db:
   user: ${MYSQL_USER}
   password: ${MYSQL_PASS}
   db:  ${MYSQL_DB}
+security:
+  secret_key: ${SECRET_KEY}

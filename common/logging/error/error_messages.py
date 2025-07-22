@@ -9,3 +9,9 @@ INTERNAL_SERVICE_ERROR = ErrorCode(code="INTERNAL_SERVICE_ERROR",
 SERVICE_TIMEOUT = ErrorCode(code="SERVICE TIMEOUT",
                             message="A timeout in processing has occurred",
                             status=408)
+USER_NOT_FOUND = ErrorCode(code="USER_NOT_FOUND",
+                           message="No user exists with this email and password",
+                           status=401)
+INVALID_PASSWORD = ErrorCode(code="INVALID_PASSWORD",
+                             message="Invalid password for user email",
+                             status=401)
