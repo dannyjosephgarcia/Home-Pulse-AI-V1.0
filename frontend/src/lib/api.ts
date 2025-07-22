@@ -1,0 +1,119 @@
+const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+
+// Token management
+export const getAuthToken = (): string | null => {
+  return localStorage.getItem('auth_token');
+};
+
+export const setAuthToken = (token: string): void => {
+  localStorage.setItem('auth_token', token);
+};
+
+export const removeAuthToken = (): void => {
+  localStorage.removeItem('auth_token');
+};
+
+export const isTokenExpired = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    return payload.exp < currentTime;
+  } catch {
+    return true;
+  }
+};
+
+export const getUserFromToken = (token: string): { user_id: number; email: string } | null => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      user_id: payload.user_id,
+      email: payload.email
+    };
+  } catch {
+    return null;
+  }
+};
+
+// API client
+class ApiClient {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<{ data: T | null; error: any }> {
+    try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add existing headers
+      if (options.headers) {
+        Object.entries(options.headers as Record<string, string>).forEach(([key, value]) => {
+          headers[key] = value;
+        });
+      }
+
+      if (token && !isTokenExpired(token)) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { data: null, error: data };
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: { message: 'Network error' } };
+    }
+  }
+
+  // Auth endpoints
+  async signUp(email: string, password: string): Promise<{ data: any; error: any }> {
+    return this.request('/v1/customers/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  async signIn(email: string, password: string): Promise<{ data: any; error: any }> {
+    return this.request('/v1/customers/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  // Property endpoints
+  async getProperties(): Promise<{ data: any[] | null; error: any }> {
+    return this.request('/v1/properties', {
+      method: 'GET',
+    });
+  }
+
+  async getProperty(propertyId: number): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}`, {
+      method: 'GET',
+    });
+  }
+
+  async getPropertyAppliances(propertyId: number): Promise<{ data: any[] | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/appliances`, {
+      method: 'GET',
+    });
+  }
+
+  async getPropertyStructures(propertyId: number): Promise<{ data: any[] | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/structures`, {
+      method: 'GET',
+    });
+  }
+}
+
+export const apiClient = new ApiClient();

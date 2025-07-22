@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Lock, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
+
+  // Redirect if already logged in
+  if (user) {
+    const from = location.state?.from?.pathname || '/dashboard';
+    navigate(from, { replace: true });
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,30 +36,23 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://home-pulse-api.onrender.com/v1/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
-        }),
-      });
+      const { error } = isSignUp
+        ? await signUp(email.trim(), password.trim())
+        : await signIn(email.trim(), password.trim());
 
-      if (response.ok) {
+      if (error) {
         toast({
-          title: "Registration Successful!",
-          description: "Welcome to HomePulse! You can now access our services.",
-        });
-        navigate('/');
-      } else {
-        const errorData = await response.text();
-        toast({
-          title: "Registration Failed",
-          description: `Error ${response.status}: ${errorData || 'Please try again later'}`,
+          title: `${isSignUp ? 'Sign Up' : 'Sign In'} Failed`,
+          description: error.message || 'Please try again.',
           variant: "destructive",
         });
+      } else {
+        toast({
+          title: `${isSignUp ? 'Registration' : 'Login'} Successful!`,
+          description: `Welcome to Home Pulse AI!`,
+        });
+        const from = location.state?.from?.pathname || '/dashboard';
+        navigate(from, { replace: true });
       }
     } catch (error) {
       toast({
@@ -86,10 +90,13 @@ const Login = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-2">
-              Join Home Pulse
+              {isSignUp ? 'Join Home Pulse AI' : 'Welcome Back'}
             </h1>
             <p className="text-white/80 text-lg">
-              Create your account to get started!
+              {isSignUp
+                ? 'Create your account to get started'
+                : 'Sign in to access your dashboard'
+              }
             </p>
           </div>
 
@@ -106,7 +113,7 @@ const Login = () => {
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
                     <input
                       id="email"
-                      type="text"
+                      type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
@@ -144,20 +151,29 @@ const Login = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="animate-spin" size={20} />
-                      Creating Account...
+                      {isSignUp ? 'Creating Account...' : 'Signing In...'}
                     </>
                   ) : (
-                    'Create Account'
+                    isSignUp ? 'Create Account' : 'Sign In'
                   )}
                 </button>
               </div>
             </div>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-white/60 text-sm mt-6">
-            Already have an account? Contact support for assistance at nextlevelcodingacademy@gmail.com.
-          </p>
+          {/* Toggle between Sign In and Sign Up */}
+          <div className="text-center mt-6">
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-white/60 hover:text-white underline transition-colors"
+            >
+              {isSignUp
+                ? 'Already have an account? Sign in'
+                : "Don't have an account? Sign up"
+              }
+            </button>
+          </div>
         </div>
       </div>
     </div>
