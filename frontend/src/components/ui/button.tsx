@@ -1,8 +1,9 @@
 import { cn } from '../../lib/utils';
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { forwardRef } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline';
+  variant?: 'default' | 'outline' | 'ghost';
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -12,6 +13,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       default: 'bg-primary text-white hover:bg-primary-dark',
       outline: 'border border-input bg-transparent text-white hover:bg-white/20',
+      ghost: 'bg-transparent text-white hover:bg-white/20'
     };
 
     return (
