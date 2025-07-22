@@ -5,4 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
     base: '/Home-Pulse-AI-V1.0/',
     plugins: [react()],
+    server: {
+    historyApiFallback: true}
 })

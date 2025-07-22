@@ -12,6 +12,24 @@ from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
 
+@property_routes_blueprint.route('/v1/properties', methods=['POST'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def insert_property_information_into_table(ctx,
+                                           property_creation_insertion_service=
+                                           Provide[Container.property_creation_insertion_service]):
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    logging.info(START_OF_METHOD)
+    user_id = request.user_id
+    request_json = request.get_json()
+    property_creation_requests = property_creation_insertion_service.construct_property_creation_requests(user_id,
+                                                                                                          request_json)
+    response = property_creation_insertion_service.insert_properties_into_db(user_id, property_creation_requests)
+    return jsonify(response)
+
+
 @property_routes_blueprint.route('/v1/properties', methods=['GET'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
 @csrf.exempt

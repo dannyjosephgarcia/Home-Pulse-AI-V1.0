@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Lock, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,13 +13,13 @@ const Login = () => {
   const location = useLocation();
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
-
-  // Redirect if already logged in
+  useEffect(() => {
   if (user) {
     const from = location.state?.from?.pathname || '/dashboard';
     navigate(from, { replace: true });
-    return null;
   }
+}, [user, location, navigate]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
