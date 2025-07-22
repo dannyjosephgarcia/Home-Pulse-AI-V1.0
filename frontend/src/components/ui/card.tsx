@@ -1,5 +1,5 @@
 import { cn } from '../../lib/utils';
-import React, { HTMLAttributes } from 'react';
+import type { HTMLAttributes } from 'react';
 
 export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div className={cn('rounded-2xl border p-4 shadow-sm', className)} {...props} />
