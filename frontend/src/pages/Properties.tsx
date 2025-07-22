@@ -135,7 +135,7 @@ const Properties = () => {
         }, {} as Record<string, number>)
       }));
 
-      const response = await fetch('https://home-pulse-api.onrender.com/v1/customers/appliances', {
+      const response = await fetch('https://home-pulse-api.onrender.com/v1/properties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

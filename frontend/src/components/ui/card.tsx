@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import React, { HTMLAttributes } from 'react';
 
 export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (

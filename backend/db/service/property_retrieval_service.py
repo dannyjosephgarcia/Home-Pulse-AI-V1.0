@@ -28,6 +28,7 @@ class PropertyRetrievalService:
         formatted_results = self.format_property_results(
             results=results,
             retrieval_type=retrieval_type)
+        cnx.close()
         logging.info(END_OF_METHOD)
         return formatted_results
 
