@@ -19,8 +19,6 @@ SELECT_PROPERTIES_BY_USER_ID = """SELECT * FROM home_pulse_ai.properties WHERE u
 
 SELECT_PROPERTY_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.properties WHERE id=%s;"""
 
-SELECT_APPLIANCES_BY_PROPERTY_ID = """SELECT property_id, appliance_type, age_in_years, estimated_replacement_cost 
-FROM home_pulse_ai.appliances WHERE property_id=%s;"""
+SELECT_APPLIANCES_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.appliances WHERE property_id=%s;"""
 
-SELECT_STRUCTURES_BY_PROPERTY_ID = """SELECT property_id, structure_type, age_in_years, estimated_replacement_cost 
-FROM home_pulse_ai.structures WHERE property_id=%s;"""
+SELECT_STRUCTURES_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.structures WHERE property_id=%s;"""

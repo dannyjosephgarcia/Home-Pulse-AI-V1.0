@@ -25,9 +25,11 @@ class PropertyRetrievalService:
             user_id=user_id,
             property_id=property_id,
             retrieval_type=retrieval_type)
-        formatted_results = self.format_property_results()
-
+        formatted_results = self.format_property_results(
+            results=results,
+            retrieval_type=retrieval_type)
         logging.info(END_OF_METHOD)
+        return formatted_results
 
     @staticmethod
     def execute_retrieval_statement(cnx, user_id, property_id, retrieval_type):
@@ -69,9 +71,26 @@ class PropertyRetrievalService:
         :return: python dict
         """
         logging.info(START_OF_METHOD)
-        formatted_results = {}
+        formatted_results = []
+        if not results:
+            return formatted_results
         if retrieval_type == 'ALL':
-            pass
+            for i in range(len(results)):
+                property_id = int(results[i][0])
+                user_id = int(results[i][1])
+                postal_code = results[i][2]
+                age = int(results[i][3])
+                address = results[i][4]
+                created_at = results[i][5]
+                data = {
+                    'id': property_id,
+                    'user_id': user_id,
+                    'postal_code': postal_code,
+                    'age': age,
+                    'address': address,
+                    'created_at': created_at
+                }
+                formatted_results.append(data)
         elif retrieval_type == 'SINGLE':
             property_id = int(results[0][0])
             user_id = int(results[0][1])
@@ -79,7 +98,7 @@ class PropertyRetrievalService:
             age = int(results[0][3])
             address = results[0][4]
             created_at = results[0][5]
-            formatted_results.update({
+            formatted_results.append({
                 'id': property_id,
                 'user_id': user_id,
                 'postal_code': postal_code,
@@ -88,9 +107,35 @@ class PropertyRetrievalService:
                 'created_at': created_at
             })
         elif retrieval_type == 'APPLIANCES':
-            property_id = results[0][0]
+            for i in range(len(results)):
+                appliance_id = results[i][0]
+                property_id = results[i][1]
+                appliance_type = results[i][2]
+                age_in_years = results[i][3]
+                estimated_replacement_cost = results[i][4]
+                data = {
+                    'id': appliance_id,
+                    'property_id': property_id,
+                    'appliance_type': appliance_type,
+                    'age_in_years': age_in_years,
+                    'estimated_replacement_cost': estimated_replacement_cost
+                }
+                formatted_results.append(data)
         elif retrieval_type == 'STRUCTURES':
-            pass
+            for i in range(len(results)):
+                structures_id = results[i][0]
+                property_id = results[i][1]
+                structure_type = results[i][2]
+                age_in_years = results[i][3]
+                estimated_replacement_cost = results[i][4]
+                data = {
+                    'id': structures_id,
+                    'property_id': property_id,
+                    'structure_type': structure_type,
+                    'age_in_years': age_in_years,
+                    'estimated_replacement_cost': estimated_replacement_cost
+                }
+                formatted_results.append(data)
         logging.info(END_OF_METHOD)
         return formatted_results
 

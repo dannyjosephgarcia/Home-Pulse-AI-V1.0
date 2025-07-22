@@ -7,6 +7,7 @@ from backend.redfin_scraper.service.redfin_housing_data_extraction_service impor
 from backend.db.service.customer_creation_insertion_service import CustomerCreationInsertionService
 from backend.db.service.property_creation_insertion_service import PropertyCreationInsertionService
 from backend.db.service.customer_authentication_service import CustomerAuthenticationService
+from backend.db.service.property_retrieval_service import PropertyRetrievalService
 
 
 class Container(containers.DeclarativeContainer):
@@ -32,6 +33,9 @@ class Container(containers.DeclarativeContainer):
 
     property_creation_insertion_service = providers.Singleton(PropertyCreationInsertionService,
                                                               home_pulse_db_connection_pool)
+
+    property_retrieval_service = providers.Singleton(PropertyRetrievalService,
+                                                     home_pulse_db_connection_pool)
 
     customer_authentication_service = providers.Singleton(CustomerAuthenticationService,
                                                           home_pulse_db_connection_pool,

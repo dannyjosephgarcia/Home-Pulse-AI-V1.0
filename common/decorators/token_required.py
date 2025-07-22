@@ -1,7 +1,10 @@
+import os
 import jwt
+import logging
 from functools import wraps
 from flask import request, jsonify
-from backend.app.container import Container
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 
 def token_required(f):
@@ -18,11 +21,14 @@ def token_required(f):
             return jsonify({'message': 'Token is missing!'}), 401
 
         try:
-            data = jwt.decode(token, Container.config.security.secret_key, algorithms=["HS256"])
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             request.user_id = data['user_id']  # you can pass this to your route
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired!'}), 401
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
+            logging.error('An error occurred with the token',
+                          exc_info=True,
+                          extra={'information': {'error': str(e)}})
             return jsonify({'message': 'Token is invalid!'}), 401
 
         return f(*args, **kwargs)
