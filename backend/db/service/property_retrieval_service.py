@@ -99,14 +99,14 @@ class PropertyRetrievalService:
             age = int(results[0][3])
             address = results[0][4]
             created_at = results[0][5]
-            formatted_results.append({
+            formatted_results = {
                 'id': property_id,
                 'user_id': user_id,
                 'postal_code': postal_code,
                 'age': age,
                 'address': address,
                 'created_at': created_at
-            })
+            }
         elif retrieval_type == 'APPLIANCES':
             for i in range(len(results)):
                 appliance_id = results[i][0]

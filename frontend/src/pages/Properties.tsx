@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Plus, Trash2, ArrowLeft, Loader2, Calendar } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../contexts/AuthContext';
+import { apiClient } from '../lib/api';
 
 interface Appliance {
   name: string;
@@ -46,6 +48,7 @@ const Properties = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const addProperty = () => {
     setProperties([...properties, {
@@ -135,25 +138,19 @@ const Properties = () => {
         }, {} as Record<string, number>)
       }));
 
-      const response = await fetch('https://home-pulse-api.onrender.com/v1/properties', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const { data, error } = await apiClient.submitProperties(payload);
 
-      if (response.ok) {
+      if (!error) {
         toast({
           title: "Properties Submitted Successfully!",
           description: `${properties.length} property(ies) have been added to your portfolio.`,
         });
-        navigate('/');
+        navigate('/dashboard');
       } else {
         const errorData = await response.text();
         toast({
           title: "Submission Failed",
-          description: `Error ${response.status}: ${errorData || 'Please try again later'}`,
+          description: error.message || 'Please try again later',
           variant: "destructive",
         });
       }
@@ -179,11 +176,11 @@ const Properties = () => {
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between p-6">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
         >
           <ArrowLeft size={20} />
-          Back to Home
+          Back to Dashboard
         </button>
       </nav>
 

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { LogOut, Home, MapPin } from 'lucide-react';
+import { LogOut, Home, MapPin, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -146,7 +146,7 @@ const Dashboard = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-4 text-center">
+                  <div className="mt-8 text-center">
                     <span className="text-white/60 group-hover:text-white/80 transition-colors">
                       Click to view details →
                     </span>
@@ -154,6 +154,22 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Add Property Card */}
+            <Card
+              className="rounded-xl bg-white/5 hover:bg-white/10 border border-white/20 shadow-sm backdrop-blur-md transition-all duration-200 cursor-pointer group"
+              onClick={() => navigate('/properties')}
+            >
+              <CardContent className="p-6 flex flex-col items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-white/5 hover:scale-105 border border-white/20 shadow-sm backdrop-blur-md transition-all duration-200 cursor-pointer group flex items-center justify-center p-0">
+                  <Plus className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Add Property</h3>
+                <p className="text-white/70 text-center text-sm">
+                  Click to add a new property to your portfolio
+                </p>
+              </CardContent>
+            </Card>
           </div>
       )}
       </main>
