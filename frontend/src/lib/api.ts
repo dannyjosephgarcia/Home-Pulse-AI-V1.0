@@ -114,6 +114,12 @@ class ApiClient {
       method: 'GET',
     });
   }
+  async submitProperties(properties: any[]): Promise<{ data: any | null; error: any }> {
+    return this.request('/v1/properties', {
+      method: 'POST',
+      body: JSON.stringify(properties),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
