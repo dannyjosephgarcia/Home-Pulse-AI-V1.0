@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Plus, Trash2, ArrowLeft, Loader2, Calendar } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../lib/api';
 
 interface Appliance {
@@ -48,7 +47,6 @@ const Properties = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const addProperty = () => {
     setProperties([...properties, {
@@ -138,7 +136,7 @@ const Properties = () => {
         }, {} as Record<string, number>)
       }));
 
-      const { data, error } = await apiClient.submitProperties(payload);
+      const {  data: _data, error } = await apiClient.submitProperties(payload);
 
       if (!error) {
         toast({
@@ -147,7 +145,6 @@ const Properties = () => {
         });
         navigate('/dashboard');
       } else {
-        const errorData = await response.text();
         toast({
           title: "Submission Failed",
           description: error.message || 'Please try again later',
