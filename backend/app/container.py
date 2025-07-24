@@ -8,6 +8,7 @@ from backend.db.service.customer_creation_insertion_service import CustomerCreat
 from backend.db.service.property_creation_insertion_service import PropertyCreationInsertionService
 from backend.db.service.customer_authentication_service import CustomerAuthenticationService
 from backend.db.service.property_retrieval_service import PropertyRetrievalService
+from backend.db.service.customer_profile_update_service import CustomerProfileUpdateService
 
 
 class Container(containers.DeclarativeContainer):
@@ -40,3 +41,6 @@ class Container(containers.DeclarativeContainer):
     customer_authentication_service = providers.Singleton(CustomerAuthenticationService,
                                                           home_pulse_db_connection_pool,
                                                           config.security.secret_key)
+
+    customer_profile_update_service = providers.Singleton(CustomerProfileUpdateService,
+                                                          home_pulse_db_connection_pool)
