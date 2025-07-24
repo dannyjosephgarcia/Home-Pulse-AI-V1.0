@@ -22,3 +22,7 @@ SELECT_PROPERTY_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.properties WHERE
 SELECT_APPLIANCES_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.appliances WHERE property_id=%s;"""
 
 SELECT_STRUCTURES_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.structures WHERE property_id=%s;"""
+
+UPDATE_FIRST_AND_LAST_OF_CUSTOMER = """UPDATE home_pulse_ai.users SET first_name=%s, last_name=%s WHERE id=%s;"""
+
+SELECT_CUSTOMER_FIRST_AND_LAST = """SELECT first_name, last_name FROM home_pulse_ai.users WHERE id=%s;"""

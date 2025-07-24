@@ -15,6 +15,8 @@ from backend.redfin_scraper.routes.housing_market_routes import housing_market_b
 from backend.db.routes.home_pulse_db_routes import home_pulse_db_routes_blueprint
 from backend.db.routes.property_routes import property_routes_blueprint
 from backend.db.routes import property_routes
+from backend.db.routes.profile_and_payment_routes import profile_and_payments_blueprint
+from backend.db.routes import profile_and_payment_routes
 
 
 def create_app():
@@ -27,9 +29,11 @@ def create_app():
     flask_app.register_blueprint(housing_market_bluprint)
     flask_app.register_blueprint(home_pulse_db_routes_blueprint)
     flask_app.register_blueprint(property_routes_blueprint)
+    flask_app.register_blueprint(profile_and_payments_blueprint)
     flask_app.container.wire(modules=[housing_market_routes,
                                       home_pulse_db_routes,
-                                      property_routes])
+                                      property_routes,
+                                      profile_and_payment_routes])
     csrf.init_app(flask_app)
 
     logging.config.dictConfig(logging_cfg.cfg)
