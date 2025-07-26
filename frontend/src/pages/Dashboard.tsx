@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { apiClient, setAuthToken, getUserFromToken } from '../lib/api';
+import { apiClient } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { LogOut, Home, MapPin, Plus } from 'lucide-react';
+import { Home, MapPin, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '../components/UserProfile';
@@ -18,7 +18,7 @@ interface Property {
 }
 
 const Dashboard = () => {
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();

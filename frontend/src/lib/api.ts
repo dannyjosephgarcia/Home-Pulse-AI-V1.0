@@ -1,6 +1,6 @@
-// const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+const API_BASE_URL = 'https://home-pulse-api.onrender.com';
 
-const API_BASE_URL = 'http://localhost:5000';
+// const API_BASE_URL = 'http://localhost:5000';
 
 
 // Token management
