@@ -25,6 +25,6 @@ def insert_property_information_into_table(ctx,
     logging.info(START_OF_METHOD)
     user_id = request.user_id
     customer_profile_update_request = CustomerProfileUpdateRequest(request.get_json())
-    response = customer_profile_update_service.update_user_first_and_last_name(
+    refreshed_token = customer_profile_update_service.update_user_first_and_last_name(
         user_id, customer_profile_update_request.first_name, customer_profile_update_request.last_name)
-    return jsonify(response)
+    return jsonify(refreshed_token)

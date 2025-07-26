@@ -43,4 +43,5 @@ class Container(containers.DeclarativeContainer):
                                                           config.security.secret_key)
 
     customer_profile_update_service = providers.Singleton(CustomerProfileUpdateService,
+                                                          config.security.secret_key,
                                                           home_pulse_db_connection_pool)

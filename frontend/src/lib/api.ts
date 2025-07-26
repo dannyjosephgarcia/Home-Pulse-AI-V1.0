@@ -1,4 +1,7 @@
-const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+// const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+
+const API_BASE_URL = 'http://localhost:5000';
+
 
 // Token management
 export const getAuthToken = (): string | null => {
@@ -23,12 +26,14 @@ export const isTokenExpired = (token: string): boolean => {
   }
 };
 
-export const getUserFromToken = (token: string): { user_id: number; email: string } | null => {
+export const getUserFromToken = (token: string): { user_id: number; email: string; first_name?: string; last_name?: string } | null => {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     return {
       user_id: payload.user_id,
-      email: payload.email
+      email: payload.email,
+      first_name: payload.first_name,
+      last_name: payload.last_name
     };
   } catch {
     return null;
@@ -114,12 +119,21 @@ class ApiClient {
       method: 'GET',
     });
   }
+
   async submitProperties(properties: any[]): Promise<{ data: any | null; error: any }> {
-    return this.request('/v1/properties', {
+    return this.request('/v1/customers/appliances', {
       method: 'POST',
       body: JSON.stringify(properties),
     });
   }
+
+  async updateProfile(firstName: string, lastName: string): Promise<{ data: any | null; error: any }> {
+    return this.request('/v1/customers/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ firstName, lastName }),
+    });
+  }
+
 }
 
 export const apiClient = new ApiClient();
