@@ -1,12 +1,15 @@
 import logging
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
+import datetime
+import jwt
 from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
 from backend.db.model.query.sql_statements import UPDATE_FIRST_AND_LAST_OF_CUSTOMER, SELECT_CUSTOMER_FIRST_AND_LAST
 
 
 class CustomerProfileUpdateService:
-    def __init__(self, hp_ai_db_connection_pool):
+    def __init__(self, secret_key, hp_ai_db_connection_pool):
+        self.secret_key = secret_key
         self.pool = hp_ai_db_connection_pool.pool
 
     def update_user_first_and_last_name(self, user_id, first_name, last_name):
@@ -28,9 +31,12 @@ class CustomerProfileUpdateService:
             cnx=cnx,
             user_id=user_id,
             put_record_status=put_record_status)
+        refreshed_token = self.generate_refreshed_profile_jwt_token(
+            secret_key=self.secret_key,
+            response=response)
         cnx.close()
         logging.info(END_OF_METHOD)
-        return response
+        return refreshed_token
 
     @staticmethod
     def execute_update_statement_for_profile_names(cnx, user_id, first_name, last_name):
@@ -73,6 +79,7 @@ class CustomerProfileUpdateService:
             response = {
                 'firstName': result[0][0],
                 'lastName': result[0][1],
+                'email': result[0][2],
                 'userId': user_id,
                 'putRecordStatus': put_record_status
             }
@@ -84,7 +91,25 @@ class CustomerProfileUpdateService:
                           extra={'information': {'error': str(e)}})
             raise Error(INTERNAL_SERVICE_ERROR)
 
-
+    @staticmethod
+    def generate_refreshed_profile_jwt_token(secret_key, response):
+        """
+        Returns an updated token to the frontend to populate Welcome text
+        :param secret_key: The SECRET_KEY environment variable for token handling
+        :param response: The response from the route
+        :return: python dict
+        """
+        logging.info(START_OF_METHOD)
+        payload = {
+            'first_name': response['firstName'],
+            'last_name': response['lastName'],
+            'email': response['email'],
+            'user_id': response['userId'],
+            'exp': datetime.datetime.now() + datetime.timedelta(hours=1)
+        }
+        refreshed_jwt_token = jwt.encode(payload, secret_key, algorithm="HS256")
+        logging.info(END_OF_METHOD)
+        return {"token": refreshed_jwt_token}
 
     def obtain_connection(self):
         try:

@@ -83,12 +83,16 @@ class CustomerAuthenticationService:
         user_id = user_results[0][0]
         user_email = user_results[0][1]
         user_hashed_password = user_results[0][2]
+        first_name = user_results[0][3]
+        last_name = user_results[0][4]
         if not bcrypt.check_password_hash(user_hashed_password, password):
             logging.error('The provided password is not valid')
             raise Error(INVALID_PASSWORD)
         payload = {
             'user_id': user_id,
             'email': user_email,
+            'first_name': first_name,
+            'last_name': last_name,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         }
         valid_jwt_token = jwt.encode(payload, self.secret_key, algorithm="HS256")

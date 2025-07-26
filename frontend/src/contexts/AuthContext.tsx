@@ -4,10 +4,13 @@ import { apiClient, getAuthToken, setAuthToken, removeAuthToken, isTokenExpired,
 interface User {
   user_id: number;
   email: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  setUser: (user: User | null) => void;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
@@ -73,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
+    setUser,
     signUp,
     signIn,
     signOut,
