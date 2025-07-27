@@ -21,6 +21,7 @@ interface Appliance {
   age_in_years: number;
   estimated_replacement_cost: number;
   property_id: number;
+  forecasted_replacement_date: string;
 }
 
 interface Structure {
@@ -29,6 +30,7 @@ interface Structure {
   age_in_years: number;
   estimated_replacement_cost: number;
   property_id: number;
+  forecasted_replacement_date: string;
 }
 
 const PropertyDetail = () => {
