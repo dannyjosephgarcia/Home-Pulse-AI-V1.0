@@ -1,6 +1,7 @@
 import logging
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
+from datetime import datetime
 from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
 from backend.db.model.query.sql_statements import (SELECT_PROPERTY_BY_PROPERTY_ID, SELECT_APPLIANCES_BY_PROPERTY_ID,
                                                    SELECT_PROPERTIES_BY_USER_ID, SELECT_STRUCTURES_BY_PROPERTY_ID)
@@ -114,12 +115,17 @@ class PropertyRetrievalService:
                 appliance_type = results[i][2]
                 age_in_years = results[i][3]
                 estimated_replacement_cost = results[i][4]
+                if results[i][5]:
+                    forecasted_replacement_date = datetime.strftime(results[i][5], '%Y-%m-%d %H:%M:%S')
+                else:
+                    forecasted_replacement_date = 'TBD'
                 data = {
                     'id': appliance_id,
                     'property_id': property_id,
                     'appliance_type': appliance_type,
                     'age_in_years': age_in_years,
-                    'estimated_replacement_cost': estimated_replacement_cost
+                    'estimated_replacement_cost': estimated_replacement_cost,
+                    'forecasted_replacement_date': forecasted_replacement_date
                 }
                 formatted_results.append(data)
         elif retrieval_type == 'STRUCTURES':
@@ -129,12 +135,17 @@ class PropertyRetrievalService:
                 structure_type = results[i][2]
                 age_in_years = results[i][3]
                 estimated_replacement_cost = results[i][4]
+                if results[i][5]:
+                    forecasted_replacement_date = datetime.strftime(results[i][5], '%Y-%m-%d %H:%M:%S')
+                else:
+                    forecasted_replacement_date = 'TBD'
                 data = {
                     'id': structures_id,
                     'property_id': property_id,
                     'structure_type': structure_type,
                     'age_in_years': age_in_years,
-                    'estimated_replacement_cost': estimated_replacement_cost
+                    'estimated_replacement_cost': estimated_replacement_cost,
+                    'forecasted_replacement_date': forecasted_replacement_date
                 }
                 formatted_results.append(data)
         logging.info(END_OF_METHOD)
