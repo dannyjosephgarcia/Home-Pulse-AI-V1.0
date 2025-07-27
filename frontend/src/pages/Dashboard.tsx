@@ -110,7 +110,7 @@ const Dashboard = () => {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center space-x-2">
                     <MapPin className="h-5 w-5" />
-                    <span>Property #{property.id}</span>
+                    <span>Property #{property.address}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
