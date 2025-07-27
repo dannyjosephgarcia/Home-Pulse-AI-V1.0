@@ -230,7 +230,7 @@ const PropertyDetail = () => {
                           <p className="text-white/60 text-sm">
                               Estimated replacement cost:{' '}
                               {structure.estimated_replacement_cost != null
-                                ? `$${appliance.estimated_replacement_cost.toLocaleString()}`
+                                ? `$${structure.estimated_replacement_cost.toLocaleString()}`
                                 : 'N/A'}
                             </p>
                           {structure.forecasted_replacement_date && (
@@ -238,7 +238,7 @@ const PropertyDetail = () => {
                               Forecasted replacement:{' '}
                               {structure.forecasted_replacement_date === 'TBD'
                                 ? 'TBD'
-                                : new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
+                                : new Date(structure.forecasted_replacement_date).toLocaleDateString()}
                             </p>
                           )}
                         </div>
