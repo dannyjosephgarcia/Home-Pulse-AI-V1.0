@@ -182,11 +182,18 @@ const PropertyDetail = () => {
                           <h4 className="text-white font-medium capitalize">{appliance.appliance_type}</h4>
                           <span className="text-white/70 text-sm">{appliance.age_in_years} years old</span>
                         </div>
-                        {appliance.estimated_replacement_cost && (
-                          <p className="text-white/60 text-sm">
-                            Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
-                          </p>
-                        )}
+                        <div className="space-y-1">
+                          {appliance.estimated_replacement_cost && (
+                            <p className="text-white/60 text-sm">
+                              Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
+                            </p>
+                          )}
+                          {appliance.forecasted_replacement_date && (
+                            <p className="text-white/60 text-sm">
+                              Forecasted replacement: {new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -213,11 +220,18 @@ const PropertyDetail = () => {
                           <h4 className="text-white font-medium capitalize">{structure.structure_type}</h4>
                           <span className="text-white/70 text-sm">{structure.age_in_years} years old</span>
                         </div>
-                        {structure.estimated_replacement_cost && (
-                          <p className="text-white/60 text-sm">
-                            Estimated replacement: ${structure.estimated_replacement_cost.toLocaleString()}
-                          </p>
-                        )}
+                        <div className="space-y-1">
+                          {structure.estimated_replacement_cost && (
+                            <p className="text-white/60 text-sm">
+                              Estimated replacement: ${structure.estimated_replacement_cost.toLocaleString()}
+                            </p>
+                          )}
+                          {structure.forecasted_replacement_date && (
+                            <p className="text-white/60 text-sm">
+                              Forecasted replacement: {new Date(structure.forecasted_replacement_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
