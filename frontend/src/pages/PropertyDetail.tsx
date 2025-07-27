@@ -131,7 +131,7 @@ const PropertyDetail = () => {
               </Button>
               <div className="h-6 w-px bg-white/30" />
               <Home className="h-6 w-6 text-white" />
-              <h1 className="text-xl font-bold text-white">Property {property.address}</h1>
+              <h1 className="text-xl font-bold text-white">Property: {property.address}</h1>
             </div>
           </div>
         </div>
@@ -185,11 +185,12 @@ const PropertyDetail = () => {
                           <span className="text-white/70 text-sm">{appliance.age_in_years} years old</span>
                         </div>
                         <div className="space-y-1">
-                          {appliance.estimated_replacement_cost && (
-                            <p className="text-white/60 text-sm">
-                              Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
+                          <p className="text-white/60 text-sm">
+                              Estimated replacement cost:{' '}
+                              {appliance.estimated_replacement_cost != null
+                                ? `$${appliance.estimated_replacement_cost.toLocaleString()}`
+                                : 'N/A'}
                             </p>
-                          )}
                           {appliance.forecasted_replacement_date && (
                             <p className="text-white/60 text-sm">
                               Forecasted replacement:{' '}
@@ -226,14 +227,18 @@ const PropertyDetail = () => {
                           <span className="text-white/70 text-sm">{structure.age_in_years} years old</span>
                         </div>
                         <div className="space-y-1">
-                          {structure.estimated_replacement_cost && (
-                            <p className="text-white/60 text-sm">
-                              Estimated replacement: ${structure.estimated_replacement_cost.toLocaleString()}
+                          <p className="text-white/60 text-sm">
+                              Estimated replacement cost:{' '}
+                              {structure.estimated_replacement_cost != null
+                                ? `$${appliance.estimated_replacement_cost.toLocaleString()}`
+                                : 'N/A'}
                             </p>
-                          )}
                           {structure.forecasted_replacement_date && (
                             <p className="text-white/60 text-sm">
-                              Forecasted replacement: {new Date(structure.forecasted_replacement_date).toLocaleDateString()}
+                              Forecasted replacement:{' '}
+                              {structure.forecasted_replacement_date === 'TBD'
+                                ? 'TBD'
+                                : new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
                             </p>
                           )}
                         </div>

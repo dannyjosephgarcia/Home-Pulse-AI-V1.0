@@ -110,7 +110,7 @@ const Dashboard = () => {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center space-x-2">
                     <MapPin className="h-5 w-5" />
-                    <span>Property {property.address}</span>
+                    <span>Property: {property.address}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -148,15 +148,20 @@ const Dashboard = () => {
               className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group border-dashed"
               onClick={() => navigate('/properties')}
             >
-              <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[280px]">
-                <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4 group-hover:bg-white/30 transition-colors">
-                  <Plus className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Add Property</h3>
-                <p className="text-white/70 text-center text-sm">
-                  Click to add a new property to your portfolio
-                </p>
-              </CardContent>
+                <CardContent
+                  className="p-6 flex flex-col items-center justify-center h-full min-h-[280px] transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded-xl group"
+                  tabIndex={0}
+                >
+                  <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4 transition-colors group-hover:bg-white/30 group-hover:animate-pulse">
+                    <Plus className="h-10 w-10 text-white transition-transform duration-300 group-hover:rotate-90" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2 transition-colors group-hover:text-white/90">
+                    Add Property
+                  </h3>
+                  <p className="text-white/70 text-center text-sm transition-colors group-hover:text-white/80">
+                    Click to add a new property to your portfolio
+                  </p>
+                </CardContent>
             </Card>
           </div>
         )}
