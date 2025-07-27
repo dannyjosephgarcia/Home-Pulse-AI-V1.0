@@ -131,7 +131,7 @@ const PropertyDetail = () => {
               </Button>
               <div className="h-6 w-px bg-white/30" />
               <Home className="h-6 w-6 text-white" />
-              <h1 className="text-xl font-bold text-white">Property #{property.id}</h1>
+              <h1 className="text-xl font-bold text-white">Property: {property.address}</h1>
             </div>
           </div>
         </div>
@@ -184,11 +184,22 @@ const PropertyDetail = () => {
                           <h4 className="text-white font-medium capitalize">{appliance.appliance_type}</h4>
                           <span className="text-white/70 text-sm">{appliance.age_in_years} years old</span>
                         </div>
-                        {appliance.estimated_replacement_cost && (
+                        <div className="space-y-1">
                           <p className="text-white/60 text-sm">
-                            Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
-                          </p>
-                        )}
+                              Estimated replacement cost:{' '}
+                              {appliance.estimated_replacement_cost != null
+                                ? `$${appliance.estimated_replacement_cost.toLocaleString()}`
+                                : 'N/A'}
+                            </p>
+                          {appliance.forecasted_replacement_date && (
+                            <p className="text-white/60 text-sm">
+                              Forecasted replacement:{' '}
+                              {appliance.forecasted_replacement_date === 'TBD'
+                                ? 'TBD'
+                                : new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -215,11 +226,22 @@ const PropertyDetail = () => {
                           <h4 className="text-white font-medium capitalize">{structure.structure_type}</h4>
                           <span className="text-white/70 text-sm">{structure.age_in_years} years old</span>
                         </div>
-                        {structure.estimated_replacement_cost && (
+                        <div className="space-y-1">
                           <p className="text-white/60 text-sm">
-                            Estimated replacement: ${structure.estimated_replacement_cost.toLocaleString()}
-                          </p>
-                        )}
+                              Estimated replacement cost:{' '}
+                              {structure.estimated_replacement_cost != null
+                                ? `$${structure.estimated_replacement_cost.toLocaleString()}`
+                                : 'N/A'}
+                            </p>
+                          {structure.forecasted_replacement_date && (
+                            <p className="text-white/60 text-sm">
+                              Forecasted replacement:{' '}
+                              {structure.forecasted_replacement_date === 'TBD'
+                                ? 'TBD'
+                                : new Date(structure.forecasted_replacement_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
