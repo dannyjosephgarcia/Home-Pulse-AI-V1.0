@@ -131,7 +131,7 @@ const PropertyDetail = () => {
               </Button>
               <div className="h-6 w-px bg-white/30" />
               <Home className="h-6 w-6 text-white" />
-              <h1 className="text-xl font-bold text-white">Property #{property.id}</h1>
+              <h1 className="text-xl font-bold text-white">Property {property.address}</h1>
             </div>
           </div>
         </div>
@@ -192,7 +192,10 @@ const PropertyDetail = () => {
                           )}
                           {appliance.forecasted_replacement_date && (
                             <p className="text-white/60 text-sm">
-                              Forecasted replacement: {new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
+                              Forecasted replacement:{' '}
+                              {appliance.forecasted_replacement_date === 'TBD'
+                                ? 'TBD'
+                                : new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
                             </p>
                           )}
                         </div>
