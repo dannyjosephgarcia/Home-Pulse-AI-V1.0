@@ -1,10 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ArrowLeft, Home, Wrench, Building } from 'lucide-react';
+import { ArrowLeft, Home, Wrench, Building, MapPin, Image } from 'lucide-react';
 import { toast } from 'sonner';
+import 'leaflet/dist/leaflet.css';
+
+// Type declaration for MapContainer props
+declare module 'react-leaflet' {
+  interface MapContainerProps {
+    center: [number, number];
+    zoom: number;
+    scrollWheelZoom?: boolean;
+    style?: React.CSSProperties;
+    children?: React.ReactNode;
+  }
+}
 
 interface Property {
   id: number;
@@ -40,12 +54,57 @@ const PropertyDetail = () => {
   const [appliances, setAppliances] = useState<Appliance[]>([]);
   const [structures, setStructures] = useState<Structure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [isGeocodingLoading, setIsGeocodingLoading] = useState(false);
+
+  // Fix for default marker icons in react-leaflet
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  });
 
   useEffect(() => {
     if (propertyId) {
       fetchPropertyData();
     }
   }, [propertyId]);
+
+  const geocodeAddress = async (address: string) => {
+    const apiKey = import.meta.env.VITE_OPENCAGE_API_KEY;
+    if (!apiKey) {
+      toast.error('OpenCage API key not configured');
+      return;
+    }
+
+    setIsGeocodingLoading(true);
+    try {
+      const response = await fetch(
+        `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=${apiKey}&limit=4`
+      );
+      const data = await response.json();
+      console.log(data.results)
+
+      if (data.results && data.results.length > 0) {
+        const { lat, lng } = data.results[0].geometry;
+        const fixedLat = parseFloat(lat.toFixed(6));
+        const fixedLng = parseFloat(lng.toFixed(6));
+
+        setCoordinates({ lat: fixedLat, lng: fixedLng });
+        toast.success('Location found successfully');
+      } else {
+        toast.error('Address not found');
+        setCoordinates(null);
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      toast.error('Failed to geocode address');
+      setCoordinates(null);
+    } finally {
+      setIsGeocodingLoading(false);
+    }
+  };
 
   const fetchPropertyData = async () => {
     try {
@@ -251,23 +310,92 @@ const PropertyDetail = () => {
           </div>
         </div>
 
-        {/* Right Panel - Map */}
-        <div className="w-1/2 bg-white/5 backdrop-blur-sm border-l border-white/20">
-          <div className="h-full flex items-center justify-center">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 m-6">
-              <CardContent className="p-8 text-center">
-                <div className="text-white/50 mb-4">
-                  <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                  </svg>
+        {/* Middle Panel - Map */}
+        <div className="w-1/3 bg-white/5 backdrop-blur-sm border-l border-white/20 flex flex-col">
+          {/* Auto-locate Button */}
+          <div className="p-4 border-b border-white/20">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+              <CardContent className="p-4">
+                <Button
+                  onClick={() => property?.address && geocodeAddress(property.address)}
+                  disabled={!property?.address || isGeocodingLoading}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-white/20"
+                >
+                  {isGeocodingLoading ? 'Locating...' : 'Locate on Map'}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Map Container */}
+          <div className="flex-1 p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 h-full">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <MapPin className="h-5 w-5" />
+                  <span>Property Location</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[calc(100%-4rem)]">
+                {coordinates ? (
+                  <div className="h-full rounded-lg overflow-hidden">
+                    <MapContainer
+                      center={[coordinates.lat, coordinates.lng] as [number, number]}
+                      zoom={15}
+                      scrollWheelZoom={false}
+                      style={{ height: '100%', width: '100%' }}
+                    >
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <Marker position={[coordinates.lat, coordinates.lng] as [number, number]}>
+                        <Popup>
+                          <div className="text-center">
+                            <strong>{property.address}</strong>
+                            <br />
+                            Property #{property.id}
+                          </div>
+                        </Popup>
+                      </Marker>
+                    </MapContainer>
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-center">
+                    <div>
+                      <MapPin className="h-16 w-16 text-white/50 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-white mb-2">No Location Set</h3>
+                      <p className="text-white/70 text-sm mb-4">
+                        Enter your OpenCage API key and click "Locate on Map" to display the property location.
+                      </p>
+                      <p className="text-white/60 text-xs">
+                        Address: {property.address || 'No address available'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Right Panel - Property Image */}
+        <div className="w-1/6 bg-white/5 backdrop-blur-sm border-l border-white/20">
+          <div className="h-full p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 h-full">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <Image className="h-5 w-5" />
+                  <span>Property Photo</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[calc(100%-4rem)] flex items-center justify-center">
+                <div className="text-center">
+                  <Image className="h-16 w-16 text-white/50 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">Photo Placeholder</h3>
+                  <p className="text-white/70 text-sm">
+                    Property image will be displayed here
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Map Integration</h3>
-                <p className="text-white/70 mb-4">
-                  Map functionality will be implemented here to show the property location based on the address.
-                </p>
-                <p className="text-white/60 text-sm">
-                  Address: {property.address || 'No address available'}
-                </p>
               </CardContent>
             </Card>
           </div>
