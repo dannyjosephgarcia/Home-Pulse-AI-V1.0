@@ -6,8 +6,6 @@ import L from 'leaflet';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { ArrowLeft, Home, Wrench, Building, MapPin, Image } from 'lucide-react';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import 'leaflet/dist/leaflet.css';
 
