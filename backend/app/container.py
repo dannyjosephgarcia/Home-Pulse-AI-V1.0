@@ -1,4 +1,5 @@
 import os
+import stripe
 
 from dependency_injector import containers, providers
 from backend.redfin_scraper.client.redfin_client import RedfinClient
@@ -9,10 +10,12 @@ from backend.db.service.property_creation_insertion_service import PropertyCreat
 from backend.db.service.customer_authentication_service import CustomerAuthenticationService
 from backend.db.service.property_retrieval_service import PropertyRetrievalService
 from backend.db.service.customer_profile_update_service import CustomerProfileUpdateService
+from backend.payment.service.stripe_payment_session_creation_service import StripePaymentSessionCreationService
 
 
 class Container(containers.DeclarativeContainer):
     env = os.getenv('ENV')
+    stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
     config = providers.Configuration(yaml_files=[f"./backend/app/config-{env}.yaml"])
 
     redfin_client = providers.Singleton(RedfinClient,
@@ -45,3 +48,8 @@ class Container(containers.DeclarativeContainer):
     customer_profile_update_service = providers.Singleton(CustomerProfileUpdateService,
                                                           config.security.secret_key,
                                                           home_pulse_db_connection_pool)
+
+    stripe_payment_session_creation_service = providers.Singleton(StripePaymentSessionCreationService,
+                                                                  config.stripe.secret_key,
+                                                                  config.stripe.success_url,
+                                                                  config.stripe.cancel_url)
