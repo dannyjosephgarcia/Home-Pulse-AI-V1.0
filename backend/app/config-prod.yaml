@@ -9,3 +9,7 @@ home_pulse_ai_db:
   db:  ${MYSQL_DB}
 security:
   secret_key: ${SECRET_KEY}
+stripe:
+  secret_key: ${STRIPE_SECRET_KEY}
+  success_url: https://home-pulse-api.onrender.com/success?session_id={CHECKOUT_SESSION_ID}
+  cancel_url: https://home-pulse-api.onrender.com/cancel

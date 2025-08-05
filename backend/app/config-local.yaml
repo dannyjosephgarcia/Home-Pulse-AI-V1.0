@@ -9,3 +9,7 @@ home_pulse_ai_db:
   db:  ${MYSQL_DB}
 security:
   secret_key: ${SECRET_KEY}
+stripe:
+  secret_key: ${STRIPE_SECRET_KEY}
+  success_url: http://localhost:5173/Home-Pulse-AI-V1.0/success?session_id={CHECKOUT_SESSION_ID}
+  cancel_url: http://localhost:5173/Home-Pulse-AI-V1.0/cancel
