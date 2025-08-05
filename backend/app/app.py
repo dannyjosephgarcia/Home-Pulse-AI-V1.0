@@ -17,6 +17,8 @@ from backend.db.routes.property_routes import property_routes_blueprint
 from backend.db.routes import property_routes
 from backend.db.routes.profile_and_payment_routes import profile_and_payments_blueprint
 from backend.db.routes import profile_and_payment_routes
+from backend.payment.routes.stripe_payment_routes import stripe_payment_routes_blueprint
+from backend.payment.routes import stripe_payment_routes
 
 
 def create_app():
@@ -30,10 +32,12 @@ def create_app():
     flask_app.register_blueprint(home_pulse_db_routes_blueprint)
     flask_app.register_blueprint(property_routes_blueprint)
     flask_app.register_blueprint(profile_and_payments_blueprint)
+    flask_app.register_blueprint(stripe_payment_routes_blueprint)
     flask_app.container.wire(modules=[housing_market_routes,
                                       home_pulse_db_routes,
                                       property_routes,
-                                      profile_and_payment_routes])
+                                      profile_and_payment_routes,
+                                      stripe_payment_routes])
     csrf.init_app(flask_app)
 
     logging.config.dictConfig(logging_cfg.cfg)
