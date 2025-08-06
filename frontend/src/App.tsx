@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import Properties from "./pages/Properties";
 import Dashboard from "./pages/Dashboard";
 import PropertyDetail from "./pages/PropertyDetail";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import NotFound from "./pages/NotFound";
 import Router from "./Router"; // import the wrapper
 
@@ -46,6 +48,9 @@ const App = () => (
                 <PropertyDetail />
               </ProtectedRoute>
             } />
+            <Route path="/success" element={<PaymentSuccess />} />
+            <Route path="/cancel" element={<PaymentCancel />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
