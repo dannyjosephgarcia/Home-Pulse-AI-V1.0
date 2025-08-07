@@ -27,7 +27,8 @@ class StripePaymentSessionCreationService:
                     "quantity": 1,
                 }],
                 success_url=self.success_url,
-                cancel_url=self.cancel_url
+                cancel_url=self.cancel_url,
+                metadata={"userId": stripe_payment_request.user_id}
             )
             response = {"url": session.url}
             logging.info(END_OF_METHOD)

@@ -5,7 +5,8 @@ from flask_bcrypt import Bcrypt
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
 from common.logging.error.error_messages import INVALID_PASSWORD, USER_NOT_FOUND, INTERNAL_SERVICE_ERROR
-from backend.db.model.query.sql_statements import SELECT_CUSTOMER_FOR_AUTHENTICATION
+from backend.db.model.query.sql_statements import (SELECT_CUSTOMER_FOR_AUTHENTICATION,
+                                                   SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST)
 
 bcrypt = Bcrypt()
 
@@ -49,6 +50,53 @@ class CustomerAuthenticationService:
         try:
             cursor = cnx.cursor()
             cursor.execute(SELECT_CUSTOMER_FOR_AUTHENTICATION, [email])
+            user_results = cursor.fetchall()
+            cursor.close()
+            logging.info(END_OF_METHOD)
+            return user_results
+        except Exception as e:
+            logging.error('An issue occurred retrieving customer info for authentication',
+                          exc_info=True,
+                          extra={'information': {'error': str(e)}})
+            raise Error(INTERNAL_SERVICE_ERROR)
+
+    def generate_valid_jwt_token_after_payment(self, cnx, user_id):
+        """
+        Function used ot generate a valid jwt token after a customer has paid
+        :param cnx: The connection for the MySQLConnectionPool
+        :param user_id: The internal identifier for a customer in our system
+        :return: python dict
+        """
+        logging.info(START_OF_METHOD)
+        user_results = self.fetch_user_information_for_payment_update_token(
+            cnx=cnx,
+            user_id=user_id)
+        user_email = user_results[0][0]
+        first_name = user_results[0][1]
+        last_name = user_results[0][2]
+        payload = {
+            'user_id': user_id,
+            'email': user_email,
+            'first_name': first_name,
+            'last_name': last_name,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        }
+        valid_jwt_token = jwt.encode(payload, self.secret_key, algorithm="HS256")
+        logging.info(END_OF_METHOD)
+        return valid_jwt_token, user_email
+
+    @staticmethod
+    def fetch_user_information_for_payment_update_token(cnx, user_id):
+        """
+        Invoked in the update-payment-status route
+        :param cnx: The connection for the MySQLConnectionPool
+        :param user_id: The internal identifier for a customer in our system
+        :return: python dict
+        """
+        logging.info(START_OF_METHOD)
+        try:
+            cursor = cnx.cursor()
+            cursor.execute(SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST, [user_id])
             user_results = cursor.fetchall()
             cursor.close()
             logging.info(END_OF_METHOD)

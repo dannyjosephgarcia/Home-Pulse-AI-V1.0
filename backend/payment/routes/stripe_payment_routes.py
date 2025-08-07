@@ -7,6 +7,7 @@ from flask import Blueprint, request, jsonify
 from dependency_injector.wiring import Provide, inject
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from backend.payment.model.stripe_payment_request import StripePaymentRequest
+from backend.payment.model.update_customer_payment_status_request import UpdateCustomerPaymentStatusRequest
 
 
 stripe_payment_routes_blueprint = Blueprint('stripe_payment_routes_blueprint', __name__)
@@ -28,9 +29,22 @@ def receive_customer_payment(ctx,
     return jsonify(response)
 
 
+@stripe_payment_routes_blueprint.route('/v1/payment/update-payment-status', methods=['PATCH'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/payment')
+@csrf.exempt
+@inject
+def update_customer_payment_status(ctx,
+                                   update_payment_status_service=
+                                   Provide[Container.update_payment_status_service]):
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    logging.info(START_OF_METHOD)
+    request_json = request.get_json()
+    update_customer_payment_status_request = UpdateCustomerPaymentStatusRequest(request_json)
+    response = update_payment_status_service.update_payment_status_request(
+        update_customer_payment_status_request.session_id)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
 def receive_payment_completion_webhook():
-    pass
-
-
-def check_customer_subscription():
     pass

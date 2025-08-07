@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { setUser } = useAuth();
   const [isProcessing, setIsProcessing] = useState(true);
   const [jwt, setJwt] = useState<string | null>(null);
   const sessionId = searchParams.get('session_id');
@@ -23,12 +21,12 @@ const PaymentSuccess = () => {
       }
 
       try {
-        const response = await fetch('https://home-pulse-api.onrender.com/v1/update_payment_status', {
+        const response = await fetch('https://home-pulse-api.onrender.com/v1/payment/update-payment-status', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ session_id: sessionId }),
+          body: JSON.stringify({ sessionId: sessionId }),
         });
 
         if (!response.ok) {
