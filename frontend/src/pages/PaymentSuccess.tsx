@@ -21,12 +21,12 @@ const PaymentSuccess = () => {
       }
 
       try {
-        const response = await fetch('https://home-pulse-api.onrender.com/v1/update-payment-status', {
+        const response = await fetch('https://home-pulse-api.onrender.com/v1/payment/update-payment-status', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ session_id: sessionId }),
+          body: JSON.stringify({ sessionId: sessionId }),
         });
 
         if (!response.ok) {
