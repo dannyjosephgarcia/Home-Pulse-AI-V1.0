@@ -22,7 +22,7 @@ const PaymentSuccess = () => {
 
       try {
         const response = await fetch('https://home-pulse-api.onrender.com/v1/payment/update-payment-status', {
-          method: 'POST',
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },

@@ -37,4 +37,4 @@ class StripePaymentSessionCreationService:
             logging.error('There was an error generating the checkout link',
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
-            return Error(INTERNAL_SERVICE_ERROR)
+            raise Error(INTERNAL_SERVICE_ERROR)
