@@ -29,7 +29,7 @@ def receive_customer_payment(ctx,
     return jsonify(response)
 
 
-@stripe_payment_routes_blueprint.route('/v1/payment/update-payment-status', methods=['PATCH'])
+@stripe_payment_routes_blueprint.route('/v1/payment/update-payment-status', methods=['POST'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/payment')
 @csrf.exempt
 @inject
