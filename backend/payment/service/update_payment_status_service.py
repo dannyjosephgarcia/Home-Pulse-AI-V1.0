@@ -21,7 +21,6 @@ class UpdatePaymentStatusService:
         logging.info(START_OF_METHOD)
         payload = request.data
         sig_header = request.headers.get("Stripe-Signature")
-        logging.info(f'Here is the header: {sig_header}')
         event = self.validate_and_construct_event(
             payload=payload,
             sig_header=sig_header,
