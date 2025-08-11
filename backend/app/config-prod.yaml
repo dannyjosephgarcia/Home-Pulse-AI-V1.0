@@ -13,3 +13,7 @@ stripe:
   secret_key: ${STRIPE_SECRET_KEY}
   success_url: https://home-pulse-api.onrender.com/success?session_id={CHECKOUT_SESSION_ID}
   cancel_url: https://home-pulse-api.onrender.com/cancel
+  mode: subscription
+  payment_type: card
+  price: price_1RsmlK2R3IIW0X0zwLIylvjr
+  webhook_secret: ${STRIPE_WEBHOOK_SECRET}
