@@ -30,3 +30,6 @@ SELECT_CUSTOMER_FIRST_AND_LAST = """SELECT first_name, last_name, email FROM hom
 UPDATE_IS_PAID_STATUS_OF_CUSTOMER = """UPDATE home_pulse_ai.users SET is_paid=1 WHERE id=%s;"""
 
 SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST = """SELECT email, first_name, last_name FROM home_pulse_ai.users WHERE id=%s;"""
+
+SELECT_IS_PAID_STATUS_FOR_CUSTOMER = """SELECT is_paid, email, first_name, last_name 
+FROM home_pulse_ai.users WHERE id=%s;"""

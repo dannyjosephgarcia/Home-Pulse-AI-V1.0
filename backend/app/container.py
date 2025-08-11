@@ -33,8 +33,17 @@ class Container(containers.DeclarativeContainer):
                                                         config.home_pulse_ai_db.password,
                                                         config.home_pulse_ai_db.db)
 
+    stripe_payment_session_creation_service = providers.Singleton(StripePaymentSessionCreationService,
+                                                                  config.stripe.secret_key,
+                                                                  config.stripe.success_url,
+                                                                  config.stripe.cancel_url,
+                                                                  config.stripe.price,
+                                                                  config.stripe.mode,
+                                                                  config.stripe.payment_type)
+
     customer_creation_insertion_service = providers.Singleton(CustomerCreationInsertionService,
-                                                              home_pulse_db_connection_pool)
+                                                              home_pulse_db_connection_pool,
+                                                              stripe_payment_session_creation_service)
 
     property_creation_insertion_service = providers.Singleton(PropertyCreationInsertionService,
                                                               home_pulse_db_connection_pool)
@@ -50,11 +59,7 @@ class Container(containers.DeclarativeContainer):
                                                           config.security.secret_key,
                                                           home_pulse_db_connection_pool)
 
-    stripe_payment_session_creation_service = providers.Singleton(StripePaymentSessionCreationService,
-                                                                  config.stripe.secret_key,
-                                                                  config.stripe.success_url,
-                                                                  config.stripe.cancel_url)
-
     update_payment_status_service = providers.Singleton(UpdatePaymentStatusService,
                                                         home_pulse_db_connection_pool,
-                                                        customer_authentication_service)
+                                                        customer_authentication_service,
+                                                        config.stripe.webhook_secret)

@@ -1,12 +1,14 @@
 import logging
 import jwt
 import datetime
+import stripe
 from flask_bcrypt import Bcrypt
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
 from common.logging.error.error_messages import INVALID_PASSWORD, USER_NOT_FOUND, INTERNAL_SERVICE_ERROR
 from backend.db.model.query.sql_statements import (SELECT_CUSTOMER_FOR_AUTHENTICATION,
-                                                   SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST)
+                                                   SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST,
+                                                   SELECT_IS_PAID_STATUS_FOR_CUSTOMER)
 
 bcrypt = Bcrypt()
 
@@ -35,6 +37,26 @@ class CustomerAuthenticationService:
         response = {"token": valid_jwt_token,
                     "user": {"id": user_results[0][0],
                              "email": user_results[0][1]}}
+        logging.info(END_OF_METHOD)
+        return response
+
+    def authenticate_users_payment_status_post_payment_login(self, session_id):
+        """
+        Checks the is paid status in the database to issue a valid JWT Token
+        :param session_id: The sessionId from the Stripe checkout session
+        :return: python dict
+        """
+        logging.info(START_OF_METHOD)
+        session = stripe.checkout.Session.retrieve(session_id)
+        user_id = session.metadata.get("userId")
+        cnx = self.obtain_connection()
+        is_paid_status_information = self.fetch_is_paid_status_for_customer(
+            cnx=cnx,
+            user_id=user_id)
+        response = self.format_response_for_post_login(
+            user_id=user_id,
+            is_paid_status_information=is_paid_status_information)
+        cnx.close()
         logging.info(END_OF_METHOD)
         return response
 
@@ -107,6 +129,31 @@ class CustomerAuthenticationService:
                           extra={'information': {'error': str(e)}})
             raise Error(INTERNAL_SERVICE_ERROR)
 
+    @staticmethod
+    def fetch_is_paid_status_for_customer(cnx, user_id):
+        """
+        Checks to see if a customer's payment successfully
+        :param cnx:
+        :param user_id:
+        :return:
+        """
+        logging.info(START_OF_METHOD)
+        cursor = cnx.cursor()
+        cursor.execute(SELECT_IS_PAID_STATUS_FOR_CUSTOMER, [user_id])
+        table = cursor.fetchall()
+        cursor.close()
+        if table:
+            is_paid_status_information = {
+                'is_paid': table[0][0],
+                'email': table[0][1],
+                'first_name': table[0][2],
+                'last_name': table[0][3]
+            }
+        else:
+            is_paid_status_information = {'is_paid': 0}
+        logging.info(END_OF_METHOD)
+        return is_paid_status_information
+
     def obtain_connection(self):
         try:
             cnx = self.pool.get_connection()
@@ -146,3 +193,35 @@ class CustomerAuthenticationService:
         valid_jwt_token = jwt.encode(payload, self.secret_key, algorithm="HS256")
         logging.info(END_OF_METHOD)
         return valid_jwt_token
+
+    def format_response_for_post_login(self, user_id, is_paid_status_information):
+        """
+        Formats response for frontend by issuing a valid JWT token if customer has paid
+        :param user_id: The internal identifier of a user in our system
+        :param is_paid_status_information:
+        :return:
+        """
+        logging.info(START_OF_METHOD)
+        is_paid_status = is_paid_status_information['is_paid']
+        if is_paid_status:
+            email = is_paid_status_information['email']
+            first_name = is_paid_status_information['first_name']
+            last_name = is_paid_status_information['last_name']
+            payload = {
+                'user_id': user_id,
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name,
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            }
+            valid_jwt_token = jwt.encode(payload, self.secret_key, algorithm="HS256")
+            response = {'token': valid_jwt_token,
+                        'is_paid': True,
+                        'user': {
+                            'id': user_id,
+                            'email': email
+                        }}
+        else:
+            response = {'is_paid': False}
+        logging.info(END_OF_METHOD)
+        return response
