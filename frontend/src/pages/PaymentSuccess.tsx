@@ -6,62 +6,58 @@ import { toast } from 'sonner';
 import { CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
 
 const PaymentSuccess = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isProcessing, setIsProcessing] = useState(true);
-  const [jwt, setJwt] = useState<string | null>(null);
-  const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    const updatePaymentStatus = async () => {
-      if (!sessionId) {
-        toast.error('Invalid payment session');
-        setIsProcessing(false);
-        return;
-      }
-
+    const checkPaymentStatus = async () => {
       try {
-        const response = await fetch('https://home-pulse-api.onrender.com/v1/payment/update-payment-status', {
-          method: 'PATCH',
+        // Extract session_id from URL parameters
+        const sessionId = searchParams.get('session_id');
+
+        const response = await fetch('https://home-pulse-api.onrender.com/v1/customers/post-payment-login', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ sessionId: sessionId }),
+          body: JSON.stringify({
+            sessionId: sessionId
+          }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to update payment status');
+          throw new Error('Failed to check payment status');
         }
 
         const data = await response.json();
 
-        if (data.jwt) {
-          setJwt(data.jwt);
-          // Store JWT in localStorage for authentication
-          localStorage.setItem('authToken', data.jwt);
-          toast.success('Payment processed successfully!');
-        } else {
-          throw new Error('No JWT received from server');
+        if (data.paidStatus === true) {
+          // Payment confirmed, store JWT and redirect
+          if (data.jwt || data.token) {
+            localStorage.setItem('authToken', data.jwt || data.token);
+            toast.success('Payment confirmed! Redirecting to dashboard...');
+            navigate('/dashboard');
+          } else {
+            throw new Error('No authentication token received');
+          }
         }
+        // If paidStatus is not true, continue polling
       } catch (error) {
-        console.error('Error updating payment status:', error);
-        toast.error('Failed to process payment confirmation');
-      } finally {
-        setIsProcessing(false);
+        console.error('Error checking payment status:', error);
+        // Continue polling even on error
       }
     };
 
-    updatePaymentStatus();
-  }, [sessionId]);
+    // Initial check
+    checkPaymentStatus();
 
-  const handleGoToDashboard = () => {
-    if (jwt) {
-      // The JWT is already stored in localStorage, navigate to dashboard
-      navigate('/dashboard');
-    } else {
-      toast.error('Authentication token not available');
-    }
-  };
+    // Set up polling every 3 seconds
+    const interval = setInterval(checkPaymentStatus, 3000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
@@ -75,55 +71,17 @@ const PaymentSuccess = () => {
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20">
           <CardContent className="p-8 text-center">
-            {isProcessing ? (
-              <div className="space-y-6">
-                <div className="flex justify-center">
-                  <Loader2 className="h-16 w-16 text-blue-400 animate-spin" />
-                </div>
-                <div className="space-y-2">
-                  <h1 className="text-2xl font-bold text-white">Processing Payment</h1>
-                  <p className="text-white/70">
-                    Please wait while we confirm your payment...
-                  </p>
-                </div>
+            <div className="space-y-6">
+              <div className="flex justify-center">
+                <Loader2 className="h-16 w-16 text-blue-400 animate-spin" />
               </div>
-            ) : jwt ? (
-              <div className="space-y-6">
-                <div className="flex justify-center">
-                  <CheckCircle className="h-16 w-16 text-green-400" />
-                </div>
-                <div className="space-y-2">
-                  <h1 className="text-2xl font-bold text-white">Payment Successful!</h1>
-                  <p className="text-white/70">
-                    Thank you for your purchase. Your payment has been processed successfully.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleGoToDashboard}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
-                >
-                  Access Your Dashboard
-                </Button>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold text-white">Verifying Payment</h1>
+                <p className="text-white/70">
+                  Please wait while we confirm your payment status...
+                </p>
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="flex justify-center">
-                  <AlertTriangle className="h-16 w-16 text-amber-400" />
-                </div>
-                <div className="space-y-2">
-                  <h1 className="text-2xl font-bold text-white">Payment Error</h1>
-                  <p className="text-white/70">
-                    There was an issue processing your payment confirmation. Please contact customer support.
-                  </p>
-                </div>
-                <Button
-                  onClick={() => navigate('/')}
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-white/20"
-                >
-                  Return Home
-                </Button>
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       </div>
