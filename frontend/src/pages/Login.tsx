@@ -13,13 +13,13 @@ const Login = () => {
   const location = useLocation();
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
-  useEffect(() => {
+
+  // Redirect if already logged in
   if (user) {
     const from = location.state?.from?.pathname || '/dashboard';
     navigate(from, { replace: true });
+    return null;
   }
-}, [user, location, navigate]);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,23 +36,50 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const { error } = isSignUp
-        ? await signUp(email.trim(), password.trim())
-        : await signIn(email.trim(), password.trim());
+      if (isSignUp) {
+        // For signup, call the backend API directly.
+        const response = await fetch('https://home-pulse-api.onrender.com/v1/customers/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password.trim()
+          }),
+        });
 
-      if (error) {
-        toast({
-          title: `${isSignUp ? 'Sign Up' : 'Sign In'} Failed`,
-          description: error.message || 'Please try again.',
-          variant: "destructive",
-        });
+        if (!response.ok) {
+          throw new Error('Failed to create account');
+        }
+
+        const data = await response.json();
+
+        if (data.customerCheckoutSession) {
+          // Redirect to the checkout session URL
+          window.location.href = data.customerCheckoutSession;
+          return;
+        } else {
+          throw new Error('No checkout session received from server');
+        }
       } else {
-        toast({
-          title: `${isSignUp ? 'Registration' : 'Login'} Successful!`,
-          description: `Welcome to Home Pulse AI!`,
-        });
-        const from = location.state?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
+        // For sign in, use the existing auth flow
+        const { error } = await signIn(email.trim(), password.trim());
+
+        if (error) {
+          toast({
+            title: 'Sign In Failed',
+            description: error.message || 'Please try again.',
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: 'Login Successful!',
+            description: 'Welcome to Home Pulse AI!',
+          });
+          const from = location.state?.from?.pathname || '/dashboard';
+          navigate(from, { replace: true });
+        }
       }
     } catch (error) {
       toast({
