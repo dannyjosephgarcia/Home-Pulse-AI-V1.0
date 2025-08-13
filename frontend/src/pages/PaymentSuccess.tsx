@@ -30,7 +30,7 @@ const PaymentSuccess = () => {
 
         const data = await response.json();
 
-        if (data.paidStatus === true) {
+        if (data.is_paid === true) {
           // Payment confirmed, store JWT and redirect
           if (data.jwt || data.token) {
             localStorage.setItem('authToken', data.jwt || data.token);
@@ -40,7 +40,7 @@ const PaymentSuccess = () => {
             throw new Error('No authentication token received');
           }
         }
-        // If paidStatus is not true, continue polling
+        // If is_paid is not true, continue polling
       } catch (error) {
         console.error('Error checking payment status:', error);
         // Continue polling even on error
