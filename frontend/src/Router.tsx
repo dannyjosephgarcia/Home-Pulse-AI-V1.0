@@ -1,15 +1,12 @@
-import React from 'react';
-import { BrowserRouter, HashRouter } from 'react-router-dom';
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
 
-const isGithubPages = import.meta.env.MODE === 'production';
+// Detect if running on GitHub Pages by checking the hostname
+const isGithubPages = window.location.hostname.includes("github.io");
 
 const Router = ({ children }: { children: React.ReactNode }) => {
-  // Use HashRouter for GitHub Pages
-  return isGithubPages ? (
-    <HashRouter>{children}</HashRouter>
-  ) : (
-    <BrowserRouter basename="/Home-Pulse-AI-V1.0">{children}</BrowserRouter>
-  );
+  const basename = isGithubPages ? "/Home-Pulse-AI-V1.0" : "/";
+  return <BrowserRouter basename={basename}>{children}</BrowserRouter>;
 };
 
 export default Router;
