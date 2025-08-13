@@ -11,8 +11,8 @@ security:
   secret_key: ${SECRET_KEY}
 stripe:
   secret_key: ${STRIPE_SECRET_KEY}
-  success_url: https://home-pulse-api.onrender.com/success?session_id={CHECKOUT_SESSION_ID}
-  cancel_url: https://home-pulse-api.onrender.com/cancel
+  success_url: https://dannyjosephgarcia.github.io/Home-Pulse-AI-V1.0/success?session_id={CHECKOUT_SESSION_ID}
+  cancel_url: https://dannyjosephgarcia.github.io/Home-Pulse-AI-V1.0/cancel
   mode: subscription
   payment_type: card
   price: price_1RsmlK2R3IIW0X0zwLIylvjr
