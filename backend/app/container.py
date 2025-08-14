@@ -12,6 +12,7 @@ from backend.db.service.property_retrieval_service import PropertyRetrievalServi
 from backend.db.service.customer_profile_update_service import CustomerProfileUpdateService
 from backend.payment.service.stripe_payment_session_creation_service import StripePaymentSessionCreationService
 from backend.payment.service.update_payment_status_service import UpdatePaymentStatusService
+from backend.db.service.tenant_information_retrieval_service import TenantInformationRetrievalService
 
 
 class Container(containers.DeclarativeContainer):
@@ -63,3 +64,6 @@ class Container(containers.DeclarativeContainer):
                                                         home_pulse_db_connection_pool,
                                                         customer_authentication_service,
                                                         config.stripe.webhook_secret)
+
+    tenant_information_retrieval_service = providers.Singleton(TenantInformationRetrievalService,
+                                                               home_pulse_db_connection_pool)

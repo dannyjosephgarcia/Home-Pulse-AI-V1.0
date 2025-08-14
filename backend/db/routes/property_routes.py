@@ -94,3 +94,37 @@ def fetch_structures_information_for_property_details(ctx,
                                                                      retrieval_type='STRUCTURES')
     logging.info(END_OF_METHOD)
     return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/tenants', methods=['GET'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def fetch_tenant_information_for_dashboard(ctx,
+                                           property_id,
+                                           tenant_information_retrieval_service=
+                                           Provide[Container.tenant_information_retrieval_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    response = tenant_information_retrieval_service.fetch_tenant_information(property_id=property_id)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+# Need to add a PUT route as well
+
+
+@property_routes_blueprint.route('/v1/properties/<user_id>/addresses', methods=['GET'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def fetch_address_information_for_properties(ctx,
+                                             user_id,
+                                             property_retrieval_service=Provide[Container.property_retrieval_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    response = property_retrieval_service.fetch_property_information(user_id=user_id,
+                                                                     retrieval_type='ADDRESSES')
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
