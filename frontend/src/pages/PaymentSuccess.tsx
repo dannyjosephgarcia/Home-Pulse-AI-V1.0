@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/card';
+import { useAuth } from '../contexts/AuthContext';
+import { setAuthToken, getUserFromToken } from '../lib/api';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { setUser } = useAuth();
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
@@ -33,7 +36,10 @@ const PaymentSuccess = () => {
         if (data.is_paid === true) {
           // Payment confirmed, store JWT and redirect
           if (data.jwt || data.token) {
-            localStorage.setItem('authToken', data.jwt || data.token);
+            const token = data.jwt || data.token;
+            setAuthToken(token);
+            const userData = getUserFromToken(token);
+            setUser(userData);
             toast.success('Payment confirmed! Redirecting to dashboard...');
             navigate('/dashboard');
           } else {
