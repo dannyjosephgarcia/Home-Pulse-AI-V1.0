@@ -17,6 +17,8 @@ FROM home_pulse_ai.users WHERE email=%s;"""
 
 SELECT_PROPERTIES_BY_USER_ID = """SELECT * FROM home_pulse_ai.properties WHERE user_id=%s;"""
 
+SELECT_ADDRESSES_BY_USER_ID = """SELECT address FROM home_pulse_ai.properties WHERE user_id=%s;"""
+
 SELECT_PROPERTY_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.properties WHERE id=%s;"""
 
 SELECT_APPLIANCES_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.appliances WHERE property_id=%s;"""
@@ -33,3 +35,5 @@ SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST = """SELECT email, first_name, last_name FR
 
 SELECT_IS_PAID_STATUS_FOR_CUSTOMER = """SELECT is_paid, email, first_name, last_name 
 FROM home_pulse_ai.users WHERE id=%s;"""
+
+SELECT_TENANT_INFORMATION_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.tenants WHERE property_id=%s;"""

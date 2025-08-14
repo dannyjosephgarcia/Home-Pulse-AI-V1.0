@@ -4,7 +4,8 @@ from common.logging.error.error import Error
 from datetime import datetime
 from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
 from backend.db.model.query.sql_statements import (SELECT_PROPERTY_BY_PROPERTY_ID, SELECT_APPLIANCES_BY_PROPERTY_ID,
-                                                   SELECT_PROPERTIES_BY_USER_ID, SELECT_STRUCTURES_BY_PROPERTY_ID)
+                                                   SELECT_PROPERTIES_BY_USER_ID, SELECT_STRUCTURES_BY_PROPERTY_ID,
+                                                   SELECT_ADDRESSES_BY_USER_ID)
 
 
 class PropertyRetrievalService:
@@ -54,6 +55,8 @@ class PropertyRetrievalService:
                 cursor.execute(SELECT_APPLIANCES_BY_PROPERTY_ID, [property_id])
             elif retrieval_type == 'STRUCTURES':
                 cursor.execute(SELECT_STRUCTURES_BY_PROPERTY_ID, [property_id])
+            elif retrieval_type == 'ADDRESSES':
+                cursor.execute(SELECT_ADDRESSES_BY_USER_ID, [user_id])
             result = cursor.fetchall()
             cursor.close()
             logging.info(END_OF_METHOD)
@@ -147,6 +150,11 @@ class PropertyRetrievalService:
                     'estimated_replacement_cost': estimated_replacement_cost,
                     'forecasted_replacement_date': forecasted_replacement_date
                 }
+                formatted_results.append(data)
+        elif retrieval_type == 'ADDRESSES':
+            for i in range(len(results)):
+                address = results[i][0]
+                data = {'address': address}
                 formatted_results.append(data)
         logging.info(END_OF_METHOD)
         return formatted_results
