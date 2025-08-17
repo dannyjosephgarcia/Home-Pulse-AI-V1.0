@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../lib/api';
 import { Button } from '../components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -41,7 +41,7 @@ interface Address {
 }
 
 const Dashboard = () => {
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [tenants, setTenants] = useState<{ [propertyId: number]: Tenant[] }>({});
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -132,7 +132,7 @@ const Dashboard = () => {
 
   const updateTenant = async (tenantId: number, propertyId: number, updatedData: Partial<Tenant>) => {
     try {
-      const { data, error } = await apiClient.updateTenant(propertyId, tenantId, updatedData);
+      const { error } = await apiClient.updateTenant(propertyId, tenantId, updatedData);
 
       if (error) {
         console.error('Failed to update tenant:', error);
@@ -172,7 +172,7 @@ const Dashboard = () => {
 
   const addTenant = async (propertyId: number, tenantData: Partial<Tenant>) => {
     try {
-      const { data, error } = await apiClient.addTenant(propertyId, tenantData);
+      const { error } = await apiClient.addTenant(propertyId, tenantData);
 
       if (error) {
         console.error('Failed to add tenant:', error);
