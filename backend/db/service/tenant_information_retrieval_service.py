@@ -69,6 +69,7 @@ class TenantInformationRetrievalService:
         contract_status = results[0][6]
         recommended_replacement_date = datetime.strftime(results[0][7], '%Y-%m-%d')
         monthly_rent = float(results[0][8])
+        phone_number = results[0][9]
         relative_contract_duration = relativedelta(results[0][5], results[0][4])
         contract_duration_months = relative_contract_duration.years * 12 + relative_contract_duration.months
         formatted_results = [{
@@ -81,7 +82,8 @@ class TenantInformationRetrievalService:
             'is_current': True if contract_status == 'active' else False,
             'current_rent': monthly_rent,
             'recommended_replacement_dates': recommended_replacement_date,
-            'contract_duration_months': contract_duration_months
+            'contract_duration_months': contract_duration_months,
+            'phone_number': phone_number
         }]
         logging.info(END_OF_METHOD)
         return formatted_results

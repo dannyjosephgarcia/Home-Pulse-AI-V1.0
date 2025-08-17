@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus } from 'lucide-react';
+import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus, PhoneCall } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '../components/UserProfile';
@@ -25,6 +25,7 @@ interface Tenant {
   id: number;
   first_name: string;
   last_name: string;
+  phone_number?: string;
   current_rent: number;
   contract_duration_months: number;
   contract_start_date: string;
@@ -189,8 +190,18 @@ const Dashboard = () => {
   };
 
   const handleAddTenant = (propertyId: number) => {
-    setShowAddTenant(propertyId);
-    setNewTenantForm({ property_id: propertyId, is_current: true });
+    const propertyTenants = tenants[propertyId] || [];
+    const currentTenant = propertyTenants.find(t => t.is_current);
+
+    if (currentTenant) {
+      // If there's a current tenant, edit them instead
+      setEditingTenant(currentTenant.id);
+      setEditForm(currentTenant);
+    } else {
+      // If no current tenant, add a new one
+      setShowAddTenant(propertyId);
+      setNewTenantForm({ property_id: propertyId, is_current: true });
+    }
   };
 
   const handleSaveNewTenant = () => {
@@ -296,7 +307,7 @@ const Dashboard = () => {
               <CardHeader>
                 <CardTitle className="text-white flex items-center space-x-2">
                   <MapPin className="h-5 w-5" />
-                  <span>Property Address: {property.address}</span>
+                  <span>{property.address}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -425,15 +436,24 @@ const Dashboard = () => {
                         className="bg-white/10 border-white/20 text-white"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="new_last_name" className="text-white/70">Last Name</Label>
-                      <Input
-                        id="new_last_name"
-                        value={newTenantForm.last_name || ''}
-                        onChange={(e) => setNewTenantForm({...newTenantForm, last_name: e.target.value})}
-                        className="bg-white/10 border-white/20 text-white"
-                      />
-                    </div>
+                      <div>
+                        <Label htmlFor="new_last_name" className="text-white/70">Last Name</Label>
+                        <Input
+                          id="new_last_name"
+                          value={newTenantForm.last_name || ''}
+                          onChange={(e) => setNewTenantForm({...newTenantForm, last_name: e.target.value})}
+                          className="bg-white/10 border-white/20 text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new_phone_number" className="text-white/70">Phone Number</Label>
+                        <Input
+                          id="new_phone_number"
+                          value={newTenantForm.phone_number || ''}
+                          onChange={(e) => setNewTenantForm({...newTenantForm, phone_number: e.target.value})}
+                          className="bg-white/10 border-white/20 text-white"
+                        />
+                      </div>
                     <div>
                       <Label htmlFor="new_rent" className="text-white/70">Monthly Rent</Label>
                       <Input
@@ -501,7 +521,6 @@ const Dashboard = () => {
           </Card>
         )}
 
-
         {properties
           .sort((a, b) => {
             // Sort properties by tenant contract end date
@@ -543,7 +562,7 @@ const Dashboard = () => {
                       className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                     >
                       <UserPlus className="h-4 w-4 mr-1" />
-                      Add Tenant
+                      {currentTenant ? 'Update Tenant' : 'Add Tenant'}
                     </Button>
                     <Button
                       size="sm"
@@ -577,15 +596,24 @@ const Dashboard = () => {
                           className="bg-white/10 border-white/20 text-white"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="add_last_name" className="text-white/70">Last Name</Label>
-                        <Input
-                          id="add_last_name"
-                          value={newTenantForm.last_name || ''}
-                          onChange={(e) => setNewTenantForm({...newTenantForm, last_name: e.target.value})}
-                          className="bg-white/10 border-white/20 text-white"
-                        />
-                      </div>
+                        <div>
+                          <Label htmlFor="add_last_name" className="text-white/70">Last Name</Label>
+                          <Input
+                            id="add_last_name"
+                            value={newTenantForm.last_name || ''}
+                            onChange={(e) => setNewTenantForm({...newTenantForm, last_name: e.target.value})}
+                            className="bg-white/10 border-white/20 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="add_phone_number" className="text-white/70">Phone Number</Label>
+                          <Input
+                            id="add_phone_number"
+                            value={newTenantForm.phone_number || ''}
+                            onChange={(e) => setNewTenantForm({...newTenantForm, phone_number: e.target.value})}
+                            className="bg-white/10 border-white/20 text-white"
+                          />
+                        </div>
                       <div>
                         <Label htmlFor="add_rent" className="text-white/70">Monthly Rent</Label>
                         <Input
@@ -682,7 +710,7 @@ const Dashboard = () => {
                         </Button>
                       )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2 text-white/70">
                           <Users className="h-4 w-4" />
@@ -712,6 +740,27 @@ const Dashboard = () => {
                         ) : (
                           <p className="text-white font-medium">
                             {currentTenant.first_name} {currentTenant.last_name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-white/70">
+                          <PhoneCall className="h-4 w-4" />
+                          <span className="text-sm">Phone Number</span>
+                        </div>
+                        {editingTenant === currentTenant.id ? (
+                          <div>
+                            <Label htmlFor="phone_number" className="text-white/70 text-xs">Phone Number</Label>
+                            <Input
+                              id="phone_number"
+                              value={editForm.phone_number || ''}
+                              onChange={(e) => setEditForm({...editForm, phone_number: e.target.value})}
+                              className="bg-white/10 border-white/20 text-white text-sm h-8"
+                            />
+                          </div>
+                        ) : (
+                          <p className="text-white font-medium">
+                            {currentTenant.phone_number || 'N/A'}
                           </p>
                         )}
                       </div>
