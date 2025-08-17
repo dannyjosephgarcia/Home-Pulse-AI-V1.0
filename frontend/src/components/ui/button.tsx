@@ -4,6 +4,7 @@ import type { ButtonHTMLAttributes } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'outline' | 'ghost';
+  size?: 'default' | 'sm' | 'lg';
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
