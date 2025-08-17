@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from common.logging.error.error import Error
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
@@ -58,7 +59,7 @@ class TenantInformationRetrievalService:
         """
         logging.info(START_OF_METHOD)
         if not results:
-            return {}
+            return [{}]
         tenant_id = results[0][0]
         property_id = results[0][1]
         first_name = results[0][2]
@@ -68,7 +69,9 @@ class TenantInformationRetrievalService:
         contract_status = results[0][6]
         recommended_replacement_date = datetime.strftime(results[0][7], '%Y-%m-%d')
         monthly_rent = float(results[0][8])
-        formatted_results = {
+        relative_contract_duration = relativedelta(results[0][5], results[0][4])
+        contract_duration_months = relative_contract_duration.years * 12 + relative_contract_duration.months
+        formatted_results = [{
             'id': tenant_id,
             'property_id': property_id,
             'first_name': first_name,
@@ -77,8 +80,9 @@ class TenantInformationRetrievalService:
             'contract_end_date': contract_end_date,
             'is_current': True if contract_status == 'active' else False,
             'current_rent': monthly_rent,
-            'recommended_replacement_dates': recommended_replacement_date
-        }
+            'recommended_replacement_dates': recommended_replacement_date,
+            'contract_duration_months': contract_duration_months
+        }]
         logging.info(END_OF_METHOD)
         return formatted_results
 

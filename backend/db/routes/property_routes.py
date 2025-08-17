@@ -7,7 +7,7 @@ from flask import jsonify, request, Blueprint
 from dependency_injector.wiring import inject, Provide
 from common.decorators.token_required import token_required
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
-
+from backend.db.model.update_tenant_information_request import UpdateTenantInformationRequest
 
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
@@ -111,7 +111,23 @@ def fetch_tenant_information_for_dashboard(ctx,
     logging.info(END_OF_METHOD)
     return jsonify(response)
 
-# Need to add a PUT route as well
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/tenants/<tenant_id>', methods=['PUT'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def update_tenant_information_for_dashboard(ctx,
+                                            property_id,
+                                            tenant_id,
+                                            tenant_information_update_service=
+                                            Provide[Container.tenant_information_update_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    update_tenant_information_request = UpdateTenantInformationRequest(tenant_id, property_id, request.get_json())
+    response = tenant_information_update_service.update_tenant_information(update_tenant_information_request)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
 
 
 @property_routes_blueprint.route('/v1/properties/<user_id>/addresses', methods=['GET'])
