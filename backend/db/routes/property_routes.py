@@ -8,6 +8,7 @@ from dependency_injector.wiring import inject, Provide
 from common.decorators.token_required import token_required
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from backend.db.model.update_tenant_information_request import UpdateTenantInformationRequest
+from backend.db.model.tenant_creation_request import TenantCreationRequest
 
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
@@ -142,5 +143,22 @@ def fetch_address_information_for_properties(ctx,
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     response = property_retrieval_service.fetch_property_information(user_id=user_id,
                                                                      retrieval_type='ADDRESSES')
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/tenants', methods=['POST'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def insert_tenant_information_into_tenant_table(ctx,
+                                                property_id,
+                                                tenant_information_insertion_service=
+                                                Provide[Container.tenant_information_insertion_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    tenant_creation_request = TenantCreationRequest(property_id, request.get_json())
+    response = tenant_information_insertion_service.insert_tenant_information(tenant_creation_request)
     logging.info(END_OF_METHOD)
     return jsonify(response)

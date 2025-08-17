@@ -37,3 +37,6 @@ SELECT_IS_PAID_STATUS_FOR_CUSTOMER = """SELECT is_paid, email, first_name, last_
 FROM home_pulse_ai.users WHERE id=%s;"""
 
 SELECT_TENANT_INFORMATION_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.tenants WHERE property_id=%s;"""
+
+INSERT_TENANT_INFORMATION_INTO_TENANTS_TABLE = """INSERT INTO home_pulse_ai.tenants (property_id, first_name, 
+last_name, contract_start_date, contract_end_date, monthly_rent, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
