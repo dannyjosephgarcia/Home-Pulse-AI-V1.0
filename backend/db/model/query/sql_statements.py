@@ -17,7 +17,7 @@ FROM home_pulse_ai.users WHERE email=%s;"""
 
 SELECT_PROPERTIES_BY_USER_ID = """SELECT * FROM home_pulse_ai.properties WHERE user_id=%s;"""
 
-SELECT_ADDRESSES_BY_USER_ID = """SELECT address FROM home_pulse_ai.properties WHERE user_id=%s;"""
+SELECT_ADDRESSES_BY_USER_ID = """SELECT id, address FROM home_pulse_ai.properties WHERE user_id=%s;"""
 
 SELECT_PROPERTY_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.properties WHERE id=%s;"""
 

@@ -1,6 +1,6 @@
-const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+// const API_BASE_URL = 'https://home-pulse-api.onrender.com';
 
-// const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://localhost:5000';
 
 
 // Token management
@@ -131,6 +131,32 @@ class ApiClient {
     return this.request('/v1/customers/profile', {
       method: 'PUT',
       body: JSON.stringify({ firstName, lastName }),
+    });
+  }
+
+  async getPropertyAddresses(userId: number): Promise<{ data: any[] | null; error: any }> {
+    return this.request(`/v1/properties/${userId}/addresses`, {
+      method: 'GET',
+    });
+  }
+
+  async getPropertyTenants(propertyId: number): Promise<{ data: any[] | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/tenants`, {
+      method: 'GET',
+    });
+  }
+
+  async updateTenant(propertyId: number, tenantId: number, tenantData: any): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/tenants/${tenantId}`, {
+      method: 'PUT',
+      body: JSON.stringify(tenantData),
+    });
+  }
+
+  async addTenant(propertyId: number, tenantData: any): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/tenants`, {
+      method: 'POST',
+      body: JSON.stringify(tenantData),
     });
   }
 

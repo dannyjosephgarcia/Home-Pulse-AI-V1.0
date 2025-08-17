@@ -153,8 +153,12 @@ class PropertyRetrievalService:
                 formatted_results.append(data)
         elif retrieval_type == 'ADDRESSES':
             for i in range(len(results)):
-                address = results[i][0]
-                data = {'address': address}
+                property_id = results[i][0]
+                address = results[i][1]
+                data = {
+                    'address': address,
+                    'property_id': property_id
+                }
                 formatted_results.append(data)
         logging.info(END_OF_METHOD)
         return formatted_results
