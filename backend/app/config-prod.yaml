@@ -1,6 +1,7 @@
-redfin:
-  base_url: https://www.redfin.com/stingray/do/location-autocomplete
+lowes:
+  delay: 1.5
   user_agent: ${USER_AGENT}
+  base_url: https://www.lowes.com
 home_pulse_ai_db:
   host: ${MYSQL_HOST}
   port: ${MYSQL_PORT}

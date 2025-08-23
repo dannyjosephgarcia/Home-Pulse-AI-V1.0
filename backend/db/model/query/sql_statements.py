@@ -40,3 +40,6 @@ SELECT_TENANT_INFORMATION_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.tenant
 
 INSERT_TENANT_INFORMATION_INTO_TENANTS_TABLE = """INSERT INTO home_pulse_ai.tenants (property_id, first_name, 
 last_name, contract_start_date, contract_end_date, monthly_rent, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
+
+UPDATE_APPLIANCE_INFORMATION = """UPDATE home_pulse_ai.appliance_information 
+SET appliance_price=%s WHERE appliance_type=%s;"""
