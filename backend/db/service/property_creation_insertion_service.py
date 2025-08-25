@@ -5,7 +5,8 @@ from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
 from backend.db.model.property_creation_request import PropertyCreationRequest
 from backend.db.model.query.sql_statements import (INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE,
                                                    INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE,
-                                                   INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE)
+                                                   INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE,
+                                                   SELECT_APPLIANCE_INFORMATION_FOR_REPLACEMENT_COST)
 
 
 class PropertyCreationInsertionService:
@@ -25,9 +26,12 @@ class PropertyCreationInsertionService:
             cnx=cnx,
             user_id=user_id,
             property_creation_requests=property_creation_requests)
+        appliance_replacement_cost = self.execute_retrieval_statement_for_replacement_cost(
+            cnx=cnx)
         insert_appliance_record_status, appliance_data = self.execute_insertion_statement_for_appliances_table(
             cnx=cnx,
-            properties=properties)
+            properties=properties,
+            appliance_replacement_cost=appliance_replacement_cost)
         insert_structures_record_status, structure_data = self.execute_insertion_statement_for_structures_table(
             cnx=cnx,
             properties=properties)
@@ -41,6 +45,30 @@ class PropertyCreationInsertionService:
         cnx.close()
         logging.info(END_OF_METHOD)
         return response
+
+    @staticmethod
+    def execute_retrieval_statement_for_replacement_cost(cnx):
+        """
+        Fetches the scraped average price of all appliances
+        :param cnx: The MySQLConnectionPool connection
+        :return: python dict
+        """
+        logging.info(START_OF_METHOD)
+        try:
+            cursor = cnx.cursor()
+            cursor.execute(SELECT_APPLIANCE_INFORMATION_FOR_REPLACEMENT_COST)
+            table = cursor.fetchall()
+            cursor.close()
+            appliance_replacement_cost = {}
+            for i in range(len(table)):
+                appliance_replacement_cost[table[i][0]] = float(table[i][1])
+            logging.info(END_OF_METHOD)
+            return appliance_replacement_cost
+        except Exception as e:
+            logging.error('An issue occurred extracting the average appliance price',
+                          exc_info=True,
+                          extra={'information': {'error': str(e)}})
+            raise Error(INTERNAL_SERVICE_ERROR)
 
     @staticmethod
     def execute_insertion_statement_for_properties_table(cnx, user_id, property_creation_requests):
@@ -74,16 +102,19 @@ class PropertyCreationInsertionService:
         return insert_property_record_status, properties
 
     @classmethod
-    def execute_insertion_statement_for_appliances_table(cls, cnx, properties):
+    def execute_insertion_statement_for_appliances_table(cls, cnx, properties, appliance_replacement_cost):
         """
         Inserts items into the appliance table
         :param cnx:
         :param properties:
+        :param appliance_replacement_cost:
         :return:
         """
         logging.info(START_OF_METHOD)
         insert_appliances_status = 200
-        appliance_data = cls.format_appliances_for_table_insertion(properties=properties)
+        appliance_data = cls.format_appliances_for_table_insertion(
+            properties=properties,
+            appliance_replacement_cost=appliance_replacement_cost)
         try:
             cursor = cnx.cursor()
             cursor.executemany(INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE, appliance_data)
@@ -181,18 +212,34 @@ class PropertyCreationInsertionService:
             raise Error(INTERNAL_SERVICE_ERROR)
 
     @staticmethod
-    def format_appliances_for_table_insertion(properties):
+    def format_appliances_for_table_insertion(properties, appliance_replacement_cost):
         """
         Formats the appliances to be able to execute an executemany statement
         :param properties
+        :param appliance_replacement_cost:
         :return: python list
         """
         data = []
+        dishwasher_price = appliance_replacement_cost.get('DISHWASHER', 100.00)
+        dryer_price = appliance_replacement_cost.get('DRYER', 100.00)
+        stove_price = appliance_replacement_cost.get('STOVE', 100.00)
+        refrigerator_price = appliance_replacement_cost.get('REFRIGERATOR', 100.00)
+        washer_price = appliance_replacement_cost.get('WASHER', 100.00)
         for property_id, property in properties.items():
             appliances = property.appliances
             for appliance_name, appliance_age in appliances.__dict__.items():
-                entry = (property_id, appliance_name, appliance_age)
-                data.append(entry)
+                entry = [property_id, appliance_name, appliance_age]
+                if appliance_name == 'stove':
+                    entry.append(stove_price)
+                if appliance_name == 'dishwasher':
+                    entry.append(dishwasher_price)
+                if appliance_name == 'dryer':
+                    entry.append(dryer_price)
+                if appliance_name == 'refrigerator':
+                    entry.append(refrigerator_price)
+                if appliance_name == 'washer':
+                    entry.append(washer_price)
+                data.append(tuple(entry))
         return data
 
     @staticmethod

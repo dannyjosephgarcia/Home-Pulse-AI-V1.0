@@ -7,7 +7,7 @@ INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE = """INSERT INTO home_pulse_ai.prop
 (user_id, postal_code, age, address) VALUES (%s, %s, %s, %s);"""
 
 INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE = """INSERT INTO home_pulse_ai.appliances 
-(property_id, appliance_type, age_in_years) VALUES (%s, %s, %s);"""
+(property_id, appliance_type, age_in_years, estimated_replacement_cost) VALUES (%s, %s, %s, %s);"""
 
 INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE = """INSERT INTO home_pulse_ai.structures 
 (property_id, structure_type, age_in_years) VALUES (%s, %s, %s);"""
@@ -43,3 +43,6 @@ last_name, contract_start_date, contract_end_date, monthly_rent, phone_number) V
 
 UPDATE_APPLIANCE_INFORMATION = """UPDATE home_pulse_ai.appliance_information 
 SET appliance_price=%s WHERE appliance_type=%s;"""
+
+SELECT_APPLIANCE_INFORMATION_FOR_REPLACEMENT_COST = """SELECT appliance_type, appliance_price 
+FROM home_pulse_ai.appliance_information"""
