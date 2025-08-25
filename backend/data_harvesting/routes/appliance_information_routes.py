@@ -17,11 +17,15 @@ appliance_information_routes_blueprint = Blueprint('appliance_information_routes
 @inject
 def insert_property_information_into_table(ctx,
                                            lowes_appliance_price_analysis_service=
-                                           Provide[Container.lowes_appliance_price_analysis_service]):
+                                           Provide[Container.lowes_appliance_price_analysis_service],
+                                           sync_lowes_price_analysis_wrapper=
+                                           Provide[Container.sync_lowes_price_analysis_wrapper]):
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     logging.info(START_OF_METHOD)
-    put_record_status = lowes_appliance_price_analysis_service.update_appliance_information_prices()
-    response = {
-        'putRecordStatus': put_record_status
-    }
-    return jsonify(response)
+    with sync_lowes_price_analysis_wrapper as scraper:
+        average_prices = scraper.update_appliances()
+        put_record_status = lowes_appliance_price_analysis_service.update_appliance_information_prices(average_prices)
+        response = {
+            'putRecordStatus': put_record_status
+        }
+        return jsonify(response)

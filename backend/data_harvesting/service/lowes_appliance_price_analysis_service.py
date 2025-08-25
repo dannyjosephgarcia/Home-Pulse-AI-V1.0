@@ -6,41 +6,38 @@ from backend.db.model.query.sql_statements import UPDATE_APPLIANCE_INFORMATION
 
 
 class LowesAppliancePriceAnalysisService:
-    def __init__(self, hp_ai_db_connection_pool, lowes_client):
+    def __init__(self, hp_ai_db_connection_pool):
         self.pool = hp_ai_db_connection_pool.pool
-        self.client = lowes_client
 
-    def update_appliance_information_prices(self):
+    def update_appliance_information_prices(self, average_prices):
         """
         Wrapper method that updates the appliance information in the db
         :return: python dict, the response
         """
         logging.info(START_OF_METHOD)
-        product_data = self.client.search_appliances(
-            category='dishwasher')
-        dishwasher_response = self.handle_product_data(
-            product_data=product_data)
+        update_statements = self.create_update_statements(
+            average_prices=average_prices)
         cnx = self.obtain_connection()
-        put_record_status = self.update_appliance_prices(cnx=cnx, response=dishwasher_response)
+        put_record_status = self.update_appliance_prices(
+            cnx=cnx,
+            update_statements=update_statements)
         cnx.close()
-        self.client.close()
         logging.info(END_OF_METHOD)
         return put_record_status
 
     @staticmethod
-    def update_appliance_prices(cnx, response):
+    def update_appliance_prices(cnx, update_statements):
         """
         Will need to generalize
         :param cnx: The MySQLConnectionPool object
-        :param response:
+        :param update_statements
         :return:
         """
         logging.info(START_OF_METHOD)
         put_record_status = 200
         try:
             cursor = cnx.cursor()
-            cursor.execute(UPDATE_APPLIANCE_INFORMATION, [response['appliance_price'],
-                                                          response['appliance_category']])
+            cursor.executemany(UPDATE_APPLIANCE_INFORMATION, update_statements)
             cnx.commit()
             cursor.close()
             logging.info(END_OF_METHOD)
@@ -63,20 +60,15 @@ class LowesAppliancePriceAnalysisService:
             raise Error(INTERNAL_SERVICE_ERROR)
 
     @staticmethod
-    def handle_product_data(product_data):
+    def create_update_statements(average_prices):
         """
         Helper method that extracts the price from the object returned after scrape
-        :param product_data: The data returned from scraping
+        :param average_prices: The data returned from scraping
         :return:
         """
         logging.info(START_OF_METHOD)
-        total_prices = 0.00
-        for data in product_data:
-            total_prices += float(data['price'])
-        average_price = round(total_prices/len(product_data), 2)
-        dishwasher_response = {
-            'appliance_type': 'DISHWASHER',
-            'appliance_price': average_price
-        }
-        logging.info(END_OF_METHOD)
-        return dishwasher_response
+        update_statement_values = []
+        for appliance_name, average_price in average_prices.items():
+            if float(average_price) > 0.00:
+                update_statement_values.append((average_price, appliance_name))
+        return update_statement_values

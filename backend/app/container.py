@@ -15,6 +15,7 @@ from backend.db.service.tenant_information_update_service import TenantInformati
 from backend.db.service.tenant_information_insertion_service import TenantInformationInsertionService
 from backend.data_harvesting.service.lowes_appliance_price_analysis_service import LowesAppliancePriceAnalysisService
 from backend.data_harvesting.client.lowes_client import LowesClient
+from backend.data_harvesting.client.sync_lowes_price_analysis_wrapper import SyncLowesPriceAnalysisWrapper
 
 
 class Container(containers.DeclarativeContainer):
@@ -76,5 +77,7 @@ class Container(containers.DeclarativeContainer):
                                        config.lowes.base_url)
 
     lowes_appliance_price_analysis_service = providers.Singleton(LowesAppliancePriceAnalysisService,
-                                                                 home_pulse_db_connection_pool,
-                                                                 lowes_client)
+                                                                 home_pulse_db_connection_pool)
+
+    sync_lowes_price_analysis_wrapper = providers.Singleton(SyncLowesPriceAnalysisWrapper,
+                                                            lowes_client)
