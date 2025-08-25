@@ -10,8 +10,6 @@ from backend.app.container import Container
 from common.logging.error.error import Error
 from backend.db.routes import home_pulse_db_routes
 from common.logging.logging_cfg import logging_cfg
-from backend.redfin_scraper.routes import housing_market_routes
-from backend.redfin_scraper.routes.housing_market_routes import housing_market_bluprint
 from backend.db.routes.home_pulse_db_routes import home_pulse_db_routes_blueprint
 from backend.db.routes.property_routes import property_routes_blueprint
 from backend.db.routes import property_routes
@@ -19,6 +17,8 @@ from backend.db.routes.profile_and_payment_routes import profile_and_payments_bl
 from backend.db.routes import profile_and_payment_routes
 from backend.payment.routes.stripe_payment_routes import stripe_payment_routes_blueprint
 from backend.payment.routes import stripe_payment_routes
+from backend.data_harvesting.routes.appliance_information_routes import appliance_information_routes_blueprint
+from backend.data_harvesting.routes import appliance_information_routes
 
 
 def create_app():
@@ -28,16 +28,16 @@ def create_app():
 
     CORS(flask_app)
 
-    flask_app.register_blueprint(housing_market_bluprint)
     flask_app.register_blueprint(home_pulse_db_routes_blueprint)
     flask_app.register_blueprint(property_routes_blueprint)
     flask_app.register_blueprint(profile_and_payments_blueprint)
     flask_app.register_blueprint(stripe_payment_routes_blueprint)
-    flask_app.container.wire(modules=[housing_market_routes,
-                                      home_pulse_db_routes,
+    flask_app.register_blueprint(appliance_information_routes_blueprint)
+    flask_app.container.wire(modules=[home_pulse_db_routes,
                                       property_routes,
                                       profile_and_payment_routes,
-                                      stripe_payment_routes])
+                                      stripe_payment_routes,
+                                      appliance_information_routes])
     csrf.init_app(flask_app)
 
     logging.config.dictConfig(logging_cfg.cfg)

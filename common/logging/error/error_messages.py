@@ -15,3 +15,6 @@ USER_NOT_FOUND = ErrorCode(code="USER_NOT_FOUND",
 INVALID_PASSWORD = ErrorCode(code="INVALID_PASSWORD",
                              message="Invalid password for user email",
                              status=401)
+WEBSCRAPING_ISSUE = ErrorCode(code="WEBSCRAPING_ISSUE",
+                              message='There was an issue harvesting data from the website',
+                              status=500)
