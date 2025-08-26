@@ -27,11 +27,14 @@ class PropertyCreationRequest:
     def __init__(self, user_id, request):
         self._validate_property_creation_request(request)
         self.user_id = user_id
-        self.postal_code = request['postalCode']
+        self.street = request['street']
+        self.city = request['city']
+        self.state = request['state']
+        self.zip = request['zip']
         self.home_age = request['homeAge']
-        self.home_address = request['homeAddress']
         self.appliances = Appliances(request['appliances'])
         self.structures = Structures(request['structures'])
+        self.home_address = self.construct_property_address(self.street, self.city, self.state, self.zip)
 
     @classmethod
     def _validate_property_creation_request(cls, request):
@@ -41,15 +44,21 @@ class PropertyCreationRequest:
         :return:
         """
         logging.info(START_OF_METHOD)
-        if 'postalCode' not in request:
-            logging.error('The postalCode field is a required field')
+        if 'street' not in request:
+            logging.error('The street field is a required field')
+            raise Error(INVALID_REQUEST)
+        if 'city' not in request:
+            logging.error('The city field is a required field')
+            raise Error(INVALID_REQUEST)
+        if 'state' not in request:
+            logging.error('The state field is a required field')
+            raise Error(INVALID_REQUEST)
+        if 'zip' not in request:
+            logging.error('The zip field is a required field')
             raise Error(INVALID_REQUEST)
         if 'homeAge' not in request:
             logging.error('The homeAge field is a required field')
             raise Error(INVALID_REQUEST)
-        if 'homeAddress' not in request:
-            logging.error('The homeAddress field is required field')
-            raise Error
         if 'appliances' not in request:
             logging.error('The appliances field is a required field')
             raise Error(INVALID_REQUEST)
@@ -84,3 +93,12 @@ class PropertyCreationRequest:
             if not validate_subfield_types(structures, field, int):
                 logging.error('A structure age is not of the correct datatype')
                 raise Error(INVALID_REQUEST)
+
+    @staticmethod
+    def construct_property_address(street, city, state, zip):
+        """
+        Constructs the address field for storage
+        :return:
+        """
+        address = street + ', ' + city + ', ' + state + ' ' + zip
+        return address
