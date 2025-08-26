@@ -85,7 +85,8 @@ class PropertyCreationInsertionService:
         try:
             cursor = cnx.cursor()
             for i in range(len(property_creation_requests)):
-                property_data = (user_id, property_creation_requests[i].postal_code,
+                property_data = (user_id, property_creation_requests[i].street, property_creation_requests[i].city,
+                                 property_creation_requests[i].state, property_creation_requests[i].zip,
                                  property_creation_requests[i].home_age, property_creation_requests[i].home_address)
                 cursor.execute(INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE, property_data)
                 cnx.commit()
