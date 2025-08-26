@@ -52,6 +52,10 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
+  .hover-bounce:hover {
+  animation: hover-bounce 0.3s ease-in-out forwards;
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;

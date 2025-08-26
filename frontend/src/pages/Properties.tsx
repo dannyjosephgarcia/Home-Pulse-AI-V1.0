@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Home, Plus, Trash2, ArrowLeft, Loader2, Calendar } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { apiClient } from '../lib/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 interface Appliance {
   name: string;
@@ -23,6 +24,22 @@ interface Property {
   appliances: Appliance[];
   structures: Structure[];
 }
+
+const US_STATES = [
+  { value: 'AL', label: 'AL' }, { value: 'AK', label: 'AK' }, { value: 'AZ', label: 'AZ' }, { value: 'AR', label: 'AR' },
+  { value: 'CA', label: 'CA' }, { value: 'CO', label: 'CO' }, { value: 'CT', label: 'CT' }, { value: 'DE', label: 'DE' },
+  { value: 'FL', label: 'FL' }, { value: 'GA', label: 'GA' }, { value: 'HI', label: 'HI' }, { value: 'ID', label: 'ID' },
+  { value: 'IL', label: 'IL' }, { value: 'IN', label: 'IN' }, { value: 'IA', label: 'IA' }, { value: 'KS', label: 'KS' },
+  { value: 'KY', label: 'KY' }, { value: 'LA', label: 'LA' }, { value: 'ME', label: 'ME' }, { value: 'MD', label: 'MD' },
+  { value: 'MA', label: 'MA' }, { value: 'MI', label: 'MI' }, { value: 'MN', label: 'MN' }, { value: 'MS', label: 'MS' },
+  { value: 'MO', label: 'MO' }, { value: 'MT', label: 'MT' }, { value: 'NE', label: 'NE' }, { value: 'NV', label: 'NV' },
+  { value: 'NH', label: 'NH' }, { value: 'NJ', label: 'NJ' }, { value: 'NM', label: 'NM' }, { value: 'NY', label: 'NY' },
+  { value: 'NC', label: 'NC' }, { value: 'ND', label: 'ND' }, { value: 'OH', label: 'OH' }, { value: 'OK', label: 'OK' },
+  { value: 'OR', label: 'OR' }, { value: 'PA', label: 'PA' }, { value: 'RI', label: 'RI' }, { value: 'SC', label: 'SC' },
+  { value: 'SD', label: 'SD' }, { value: 'TN', label: 'TN' }, { value: 'TX', label: 'TX' }, { value: 'UT', label: 'UT' },
+  { value: 'VT', label: 'VT' }, { value: 'VA', label: 'VA' }, { value: 'WA', label: 'WA' }, { value: 'WV', label: 'WV' },
+  { value: 'WI', label: 'WI' }, { value: 'WY', label: 'WY' }
+];
 
 const Properties = () => {
   const [properties, setProperties] = useState<Property[]>([
@@ -257,14 +274,26 @@ const Properties = () => {
                       <label className="text-white/90 text-sm font-medium">
                         State
                       </label>
-                      <input
-                        type="text"
+                      <Select
                         value={property.state}
-                        onChange={(e) => updateProperty(propertyIndex, 'state', e.target.value)}
-                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                        placeholder="Enter state"
+                        onValueChange={(value) => updateProperty(propertyIndex, 'state', value)}
                         disabled={isLoading}
-                      />
+                      >
+                        <SelectTrigger className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all">
+                          <SelectValue placeholder="Select state" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white/95 backdrop-blur-md border border-white/30 rounded-xl max-h-48 overflow-y-auto">
+                          {US_STATES.map((state) => (
+                            <SelectItem
+                              key={state.value}
+                              value={state.value}
+                              className="text-gray-800 hover:bg-blue-50 focus:bg-blue-50"
+                            >
+                              {state.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">

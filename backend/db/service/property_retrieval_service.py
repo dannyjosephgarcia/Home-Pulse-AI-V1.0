@@ -83,10 +83,10 @@ class PropertyRetrievalService:
             for i in range(len(results)):
                 property_id = int(results[i][0])
                 user_id = int(results[i][1])
-                postal_code = results[i][2]
-                age = int(results[i][3])
-                address = results[i][4]
-                created_at = results[i][5]
+                age = int(results[i][2])
+                postal_code = results[i][6]
+                address = results[i][7]
+                created_at = results[i][8]
                 data = {
                     'id': property_id,
                     'user_id': user_id,
@@ -99,10 +99,10 @@ class PropertyRetrievalService:
         elif retrieval_type == 'SINGLE':
             property_id = int(results[0][0])
             user_id = int(results[0][1])
-            postal_code = results[0][2]
-            age = int(results[0][3])
-            address = results[0][4]
-            created_at = results[0][5]
+            age = int(results[0][2])
+            postal_code = results[0][6]
+            address = results[0][7]
+            created_at = results[0][8]
             formatted_results = {
                 'id': property_id,
                 'user_id': user_id,

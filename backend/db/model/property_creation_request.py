@@ -95,10 +95,10 @@ class PropertyCreationRequest:
                 raise Error(INVALID_REQUEST)
 
     @staticmethod
-    def construct_property_address(street, city, state, zip):
+    def construct_property_address(street, city, state):
         """
         Constructs the address field for storage
         :return:
         """
-        address = street + ', ' + city + ', ' + state + ' ' + zip
+        address = street + ', ' + city + ', ' + state
         return address
