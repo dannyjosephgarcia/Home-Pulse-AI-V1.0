@@ -290,7 +290,7 @@ const Dashboard = () => {
             <p className="text-white/70 mb-4">You haven't added any properties yet.</p>
             <Button
               onClick={() => navigate('/properties')}
-              className="bg-white text-primary hover:bg-white/90"
+              className="bg-purple-800 text-primary hover:bg-purple/90"
             >
               Add Your First Property
             </Button>

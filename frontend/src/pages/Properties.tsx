@@ -15,9 +15,11 @@ interface Structure {
 }
 
 interface Property {
-  postalCode: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
   homeAge: number;
-  homeAddress: string;
   appliances: Appliance[];
   structures: Structure[];
 }
@@ -25,9 +27,11 @@ interface Property {
 const Properties = () => {
   const [properties, setProperties] = useState<Property[]>([
     {
-      postalCode: '',
+      street: '',
+      city: '',
+      state: '',
+      zip: '',
       homeAge: 0,
-      homeAddress: '',
       appliances: [
         { name: 'Stove', age: 0 },
         { name: 'Dishwasher', age: 0 },
@@ -50,9 +54,11 @@ const Properties = () => {
 
   const addProperty = () => {
     setProperties([...properties, {
-      postalCode: '',
+      street: '',
+      city: '',
+      state: '',
+      zip: '',
       homeAge: 0,
-      homeAddress: '',
       appliances: [
         { name: 'Stove', age: 0 },
         { name: 'Dishwasher', age: 0 },
@@ -100,10 +106,10 @@ const Properties = () => {
     // Validate all properties
     for (let i = 0; i < properties.length; i++) {
       const property = properties[i];
-      if (!property.postalCode.trim()) {
+      if (!property.street.trim() || !property.city.trim() || !property.state.trim() || !property.zip.trim()) {
         toast({
           title: "Error",
-          description: `Please fill in postal code for property ${i + 1}`,
+          description: `Please fill in all address fields for property ${i + 1}`,
           variant: "destructive",
         });
         return;
@@ -123,16 +129,14 @@ const Properties = () => {
     try {
       // Format as array of property hashmaps
       const payload = properties.map(property => ({
-        postalCode: property.postalCode.trim(),
+        street: property.street.trim(),
+        city: property.city.trim(),
+        state: property.state.trim(),
+        zip: property.zip.trim(),
         homeAge: property.homeAge,
-        homeAddress: property.homeAddress,
         appliances: property.appliances.reduce((acc, appliance) => {
           acc[appliance.name.toLowerCase()] = appliance.age;
           return acc;
-        }, {} as Record<string, number>),
-        structures: property.structures.reduce((acc, structure) => {
-            acc[structure.name.toLowerCase()] = structure.age;
-            return acc;
         }, {} as Record<string, number>)
       }));
 
@@ -216,55 +220,88 @@ const Properties = () => {
                   )}
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Postal Code */}
-                  <div className="space-y-2">
-                    <label className="text-white/90 text-sm font-medium">
-                      Postal Code
-                    </label>
-                    <input
-                      type="text"
-                      value={property.postalCode}
-                      onChange={(e) => updateProperty(propertyIndex, 'postalCode', e.target.value)}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                      placeholder="Enter postal code"
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  {/* Home Age */}
-                  <div className="space-y-2">
-                    <label className="text-white/90 text-sm font-medium">
-                      Home Age (years)
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
-                      <input
-                        type="number"
-                        min="0"
-                        value={property.homeAge || ''}
-                        onChange={(e) => updateProperty(propertyIndex, 'homeAge', parseInt(e.target.value) || 0)}
-                        className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                        placeholder="Age in years"
-                        disabled={isLoading}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Home Address */}
-                    <div className="space-y-2 md:col-span-2">
+                <div className="grid gap-6">
+                  {/* Address Fields */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
                       <label className="text-white/90 text-sm font-medium">
-                        Home Address
+                        Street Address
                       </label>
                       <input
                         type="text"
-                        value={property.homeAddress || ""}
-                        onChange={(e) => updateProperty(propertyIndex, 'homeAddress', e.target.value)}
+                        value={property.street}
+                        onChange={(e) => updateProperty(propertyIndex, 'street', e.target.value)}
                         className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                        placeholder="123 Main St, City, State"
+                        placeholder="Enter street address"
                         disabled={isLoading}
                       />
                     </div>
+
+                    <div className="space-y-2">
+                      <label className="text-white/90 text-sm font-medium">
+                        City
+                      </label>
+                      <input
+                        type="text"
+                        value={property.city}
+                        onChange={(e) => updateProperty(propertyIndex, 'city', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                        placeholder="Enter city"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-white/90 text-sm font-medium">
+                        State
+                      </label>
+                      <input
+                        type="text"
+                        value={property.state}
+                        onChange={(e) => updateProperty(propertyIndex, 'state', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                        placeholder="Enter state"
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-white/90 text-sm font-medium">
+                        ZIP Code
+                      </label>
+                      <input
+                        type="text"
+                        value={property.zip}
+                        onChange={(e) => updateProperty(propertyIndex, 'zip', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                        placeholder="Enter ZIP code"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Home Age */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-white/90 text-sm font-medium">
+                        Home Age (years)
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
+                        <input
+                          type="number"
+                          min="0"
+                          value={property.homeAge || ''}
+                          onChange={(e) => updateProperty(propertyIndex, 'homeAge', parseInt(e.target.value) || 0)}
+                          className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                          placeholder="Age in years"
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Appliances */}
