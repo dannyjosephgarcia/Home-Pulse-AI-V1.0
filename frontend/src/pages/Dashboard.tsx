@@ -342,19 +342,30 @@ const Dashboard = () => {
 
           {/* Add Property Card */}
           <Card
-            className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group border-dashed"
-            onClick={() => navigate('/properties')}
-          >
-            <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[280px]">
-              <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4 group-hover:bg-white/30 transition-colors">
-                <Plus className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Add Property</h3>
-              <p className="text-white/70 text-center text-sm">
-                Click to add a new property to your portfolio
-              </p>
-            </CardContent>
-          </Card>
+              className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group border-dashed"
+              onClick={() => navigate('/properties')}
+            >
+              <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[280px]">
+                <div className="flex flex-col items-center">
+                  <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4
+                                  group-hover:bg-white/50
+                                  transform transition-all duration-300 ease-in-out
+                                  group-hover:scale-110
+                                  group-hover:-translate-y-1
+                                  group-hover:shadow-xl">
+                    <Plus className="h-10 w-10 text-white
+                                     transition-colors transition-transform duration-300 ease-in-out
+                                     group-hover:text-purple-900
+                                     group-hover:rotate-45
+                                     group-hover:scale-125" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Add Property</h3>
+                <p className="text-white/70 text-center text-sm">
+                  Click to add a new property to your portfolio
+                </p>
+              </CardContent>
+            </Card>
         </div>
       )}
       </div>
