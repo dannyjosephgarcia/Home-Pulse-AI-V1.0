@@ -162,3 +162,21 @@ def insert_tenant_information_into_tenant_table(ctx,
     response = tenant_information_insertion_service.insert_tenant_information(tenant_creation_request)
     logging.info(END_OF_METHOD)
     return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/image', methods=['GET'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def retrieve_property_image(ctx,
+                            property_id,
+                            s3_client=Provide[Container.s3_client]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    test = s3_client.initialize_s3_client()
+    file_streaming_body = test.get_object(Bucket='home-pulse-ai-property-photos',
+                                          Key='IronManFlying.jpg')
+    print(file_streaming_body['Body'].read())
+    logging.info(END_OF_METHOD)
+    return jsonify({})

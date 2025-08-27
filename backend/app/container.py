@@ -16,6 +16,7 @@ from backend.db.service.tenant_information_insertion_service import TenantInform
 from backend.data_harvesting.service.lowes_appliance_price_analysis_service import LowesAppliancePriceAnalysisService
 from backend.data_harvesting.client.lowes_client import LowesClient
 from backend.data_harvesting.client.sync_lowes_price_analysis_wrapper import SyncLowesPriceAnalysisWrapper
+from backend.db.client.s3_client import S3Client
 
 
 class Container(containers.DeclarativeContainer):
@@ -81,3 +82,8 @@ class Container(containers.DeclarativeContainer):
 
     sync_lowes_price_analysis_wrapper = providers.Singleton(SyncLowesPriceAnalysisWrapper,
                                                             lowes_client)
+
+    s3_client = providers.Singleton(S3Client,
+                                    config.aws.access_key_id,
+                                    config.aws.secret_access_key,
+                                    config.aws.region_name)
