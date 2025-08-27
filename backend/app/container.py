@@ -17,6 +17,7 @@ from backend.data_harvesting.service.lowes_appliance_price_analysis_service impo
 from backend.data_harvesting.client.lowes_client import LowesClient
 from backend.data_harvesting.client.sync_lowes_price_analysis_wrapper import SyncLowesPriceAnalysisWrapper
 from backend.db.client.s3_client import S3Client
+from backend.db.service.property_image_retrieval_service import PropertyImageRetrievalService
 
 
 class Container(containers.DeclarativeContainer):
@@ -87,3 +88,8 @@ class Container(containers.DeclarativeContainer):
                                     config.aws.access_key_id,
                                     config.aws.secret_access_key,
                                     config.aws.region_name)
+
+    property_image_retrieval_service = providers.Singleton(PropertyImageRetrievalService,
+                                                           home_pulse_db_connection_pool,
+                                                           s3_client,
+                                                           config.aws.bucket_name)

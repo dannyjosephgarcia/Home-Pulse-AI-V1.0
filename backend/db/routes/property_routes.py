@@ -164,19 +164,29 @@ def insert_tenant_information_into_tenant_table(ctx,
     return jsonify(response)
 
 
-@property_routes_blueprint.route('/v1/properties/<property_id>/image', methods=['GET'])
+@property_routes_blueprint.route('/v1/properties/<property_id>/customers/<customer_id>/image', methods=['GET'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
 @csrf.exempt
 @token_required
 @inject
-def retrieve_property_image(ctx,
-                            property_id,
-                            s3_client=Provide[Container.s3_client]):
+def fetch_property_image_url(ctx,
+                             property_id,
+                             customer_id,
+                             property_image_retrieval_service=
+                             Provide[Container.property_image_retrieval_service]):
     logging.info(START_OF_METHOD)
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
-    test = s3_client.initialize_s3_client()
-    file_streaming_body = test.get_object(Bucket='home-pulse-ai-property-photos',
-                                          Key='IronManFlying.jpg')
-    print(file_streaming_body['Body'].read())
+    response = property_image_retrieval_service.fetch_property_image_url(customer_id, property_id)
     logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/image', methods=['POST'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def insert_property_image_and_(ctx,
+                            property_id,
+                            s3_client=Provide[Container.s3_client]):
     return jsonify({})

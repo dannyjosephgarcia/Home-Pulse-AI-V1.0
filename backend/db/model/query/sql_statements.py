@@ -46,3 +46,6 @@ SET appliance_price=%s WHERE appliance_type=%s;"""
 
 SELECT_APPLIANCE_INFORMATION_FOR_REPLACEMENT_COST = """SELECT appliance_type, appliance_price 
 FROM home_pulse_ai.appliance_information"""
+
+SELECT_PROPERTY_IMAGE_URL = """SELECT image_s3_key FROM home_pulse_ai.property_images 
+WHERE user_id=%s AND property_id=%s;"""
