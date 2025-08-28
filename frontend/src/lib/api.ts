@@ -166,6 +166,13 @@ class ApiClient {
     });
   }
 
+  async uploadPropertyImage(propertyId: number, userId: number, fileName: string): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/customers/${userId}/image`, {
+      method: 'POST',
+      body: JSON.stringify({ fileName }),
+    });
+  }
+
 
 }
 

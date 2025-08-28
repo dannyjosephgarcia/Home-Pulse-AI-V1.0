@@ -51,7 +51,9 @@ class PropertyImageInsertionService:
         try:
             url = self.s3_client.generate_presigned_url(
                 "put_object",
-                Params={"Bucket": self.bucket_name, "Key": image_key},
+                Params={"Bucket": self.bucket_name,
+                        "Key": image_key,
+                        "ContentType": "image/jpeg"},
                 ExpiresIn=600
             )
             logging.info(END_OF_METHOD)
