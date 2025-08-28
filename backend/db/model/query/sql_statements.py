@@ -49,3 +49,6 @@ FROM home_pulse_ai.appliance_information"""
 
 SELECT_PROPERTY_IMAGE_URL = """SELECT s3_key FROM home_pulse_ai.property_images 
 WHERE user_id=%s AND property_id=%s;"""
+
+INSERT_PROPERTY_IMAGE_URL = """INSERT INTO home_pulse_ai.property_images (user_id, property_id, s3_key) 
+VALUES (%s, %s, %s);"""
