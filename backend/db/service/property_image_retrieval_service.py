@@ -39,7 +39,7 @@ class PropertyImageRetrievalService:
         logging.info(START_OF_METHOD)
         try:
             url = self.s3_client.generate_presigned_url(
-                "put_object",
+                "get_object",
                 Params={"Bucket": self.bucket_name, "Key": image_key},
                 ExpiresIn=600
             )

@@ -4,8 +4,9 @@ import { apiClient } from '../lib/api';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { Button } from '../components/ui/button';
+import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ArrowLeft, Home, Wrench, Building, MapPin, Image } from 'lucide-react';
+import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import 'leaflet/dist/leaflet.css';
 
@@ -50,12 +51,15 @@ interface Structure {
 const PropertyDetail = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [property, setProperty] = useState<Property | null>(null);
   const [appliances, setAppliances] = useState<Appliance[]>([]);
   const [structures, setStructures] = useState<Structure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isGeocodingLoading, setIsGeocodingLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(false);
 
   // Fix for default marker icons in react-leaflet
   delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -68,6 +72,7 @@ const PropertyDetail = () => {
   useEffect(() => {
     if (propertyId) {
       fetchPropertyData();
+      fetchPropertyImage();
     }
   }, [propertyId]);
 
@@ -99,6 +104,32 @@ const PropertyDetail = () => {
       setCoordinates(null);
     } finally {
       setIsGeocodingLoading(false);
+    }
+  };
+
+  const fetchPropertyImage = async () => {
+    if (!user || !propertyId) return;
+
+    setIsImageLoading(true);
+    try {
+      const id = parseInt(propertyId);
+      const { data: imageData, error: imageError } = await apiClient.getPropertyImageSignedUrl(id, user.user_id);
+
+      if (imageError) {
+        console.error('Error fetching property image:', imageError);
+        // Don't show error toast for missing images as it's expected
+        setImageUrl(null);
+        return;
+      }
+
+      if (imageData?.signedURL) {
+        setImageUrl(imageData.signedURL);
+      }
+    } catch (error) {
+      console.error('Error fetching property image:', error);
+      setImageUrl(null);
+    } finally {
+      setIsImageLoading(false);
     }
   };
 
@@ -309,22 +340,52 @@ const PropertyDetail = () => {
         {/* Right Panel - Photo and Map */}
         <div className="w-1/2 bg-white/5 backdrop-blur-sm border-l border-white/20 flex flex-col">
           {/* Property Photo */}
-          <div className="h-1/3 p-4">
+          <div className="h-1/2 p-4">
             <Card className="bg-white/10 backdrop-blur-md border-white/20 h-full">
               <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Image className="h-5 w-5" />
-                  <span>Property Photo</span>
+                <CardTitle className="text-white flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Image className="h-5 w-5" />
+                    <span>Property Photo</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="h-[calc(100%-4rem)] flex items-center justify-center">
-                <div className="text-center">
-                  <Image className="h-24 w-32 text-white/50 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">Photo Placeholder</h3>
-                  <p className="text-white/70 text-sm">
-                    Property image will be displayed here
-                  </p>
-                </div>
+                {isImageLoading ? (
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p className="text-white/70 text-sm">Loading image...</p>
+                  </div>
+                ) : imageUrl ? (
+                  <div className="w-full h-full">
+                    <img
+                      src={imageUrl}
+                      alt="Property"
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          console.error('Failed to load image', target.src);
+                          setImageUrl(null);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Image className="h-24 w-32 text-white/50 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-white mb-2">No Photo Available</h3>
+                    <p className="text-white/70 text-sm">
+                      Click "Upload" to add a property photo
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

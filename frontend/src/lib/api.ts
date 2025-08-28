@@ -160,6 +160,13 @@ class ApiClient {
     });
   }
 
+  async getPropertyImageSignedUrl(propertyId: number, userId: number): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/customers/${userId}/image`, {
+      method: 'GET',
+    });
+  }
+
+
 }
 
 export const apiClient = new ApiClient();
