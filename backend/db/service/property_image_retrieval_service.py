@@ -25,9 +25,12 @@ class PropertyImageRetrievalService:
             user_id=user_id,
             property_id=property_id)
         cnx.close()
-        signed_url = self.sign_image_url(
-            image_key=image_key)
-        logging.info(END_OF_METHOD)
+        if image_key:
+            signed_url = self.sign_image_url(
+                image_key=image_key)
+            logging.info(END_OF_METHOD)
+        else:
+            signed_url = None
         return {'signedURL': signed_url}
 
     def sign_image_url(self, image_key):
@@ -65,7 +68,7 @@ class PropertyImageRetrievalService:
             cursor = cnx.cursor()
             cursor.execute(SELECT_PROPERTY_IMAGE_URL, [user_id, property_id])
             result = cursor.fetchall()
-            image_url = result[0][0]
+            image_url = result[0][0] if result else None
             cursor.close()
             logging.info(END_OF_METHOD)
             return image_url

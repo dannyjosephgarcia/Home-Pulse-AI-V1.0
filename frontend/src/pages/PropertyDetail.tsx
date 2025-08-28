@@ -60,6 +60,7 @@ const PropertyDetail = () => {
   const [isGeocodingLoading, setIsGeocodingLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fix for default marker icons in react-leaflet
   delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -130,6 +131,57 @@ const PropertyDetail = () => {
       setImageUrl(null);
     } finally {
       setIsImageLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !propertyId) return;
+
+    setIsUploading(true);
+    try {
+      const id = parseInt(propertyId);
+      const fileName = file.name;
+
+      // Get signed URL for upload
+      const { data: uploadData, error: uploadError } = await apiClient.uploadPropertyImage(id, user.user_id, fileName);
+
+      if (uploadError) {
+        console.error('Error getting upload URL:', uploadError);
+        toast.error('Failed to prepare image upload');
+        return;
+      }
+
+      if (!uploadData?.imageUrl) {
+        toast.error('No upload URL received');
+        return;
+      }
+
+      // Upload file to S3 using signed URL
+      const uploadResponse = await fetch(uploadData.imageUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload to S3');
+      }
+
+      toast.success('Image uploaded successfully');
+
+      // Refresh the image display
+      await fetchPropertyImage();
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      event.target.value = '';
     }
   };
 
@@ -352,9 +404,24 @@ const PropertyDetail = () => {
                     variant="outline"
                     size="sm"
                     className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (event) => {
+                        const target = event.target as HTMLInputElement;
+                        const syntheticEvent = {
+                          target,
+                          currentTarget: target,
+                        } as React.ChangeEvent<HTMLInputElement>;
+                        handleImageUpload(syntheticEvent);
+                      };
+                      input.click();
+                    }}
+                    disabled={isUploading}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload
+                    {isUploading ? 'Uploading...' : 'Upload'}
                   </Button>
                 </CardTitle>
               </CardHeader>
