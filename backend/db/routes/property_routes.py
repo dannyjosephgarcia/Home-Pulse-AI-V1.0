@@ -176,17 +176,18 @@ def fetch_property_image_url(ctx,
                              Provide[Container.property_image_retrieval_service]):
     logging.info(START_OF_METHOD)
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
-    response = property_image_retrieval_service.fetch_property_image_url(customer_id, property_id)
+    response = property_image_retrieval_service.fetch_and_sign_property_image_url(customer_id, property_id)
     logging.info(END_OF_METHOD)
     return jsonify(response)
 
 
-@property_routes_blueprint.route('/v1/properties/<property_id>/image', methods=['POST'])
+@property_routes_blueprint.route('/v1/properties/<property_id>/customers/<customer_id>/image', methods=['POST'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
 @csrf.exempt
 @token_required
 @inject
 def insert_property_image_and_(ctx,
-                            property_id,
-                            s3_client=Provide[Container.s3_client]):
+                               property_id,
+                               customer_id,
+                               s3_client=Provide[Container.s3_client]):
     return jsonify({})
