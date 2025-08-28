@@ -34,7 +34,7 @@ class PropertyCreationRequest:
         self.home_age = request['homeAge']
         self.appliances = Appliances(request['appliances'])
         self.structures = Structures(request['structures'])
-        self.home_address = self.construct_property_address(self.street, self.city, self.state, self.zip)
+        self.home_address = self.construct_property_address(self.street, self.city, self.state)
 
     @classmethod
     def _validate_property_creation_request(cls, request):

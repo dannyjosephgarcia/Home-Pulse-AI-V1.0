@@ -9,6 +9,7 @@ from common.decorators.token_required import token_required
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from backend.db.model.update_tenant_information_request import UpdateTenantInformationRequest
 from backend.db.model.tenant_creation_request import TenantCreationRequest
+from backend.db.model.property_image_insertion_request import PropertyImageInsertionRequest
 
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
@@ -189,5 +190,13 @@ def fetch_property_image_url(ctx,
 def insert_property_image_and_(ctx,
                                property_id,
                                customer_id,
-                               s3_client=Provide[Container.s3_client]):
-    return jsonify({})
+                               property_image_insertion_service=
+                               Provide[Container.property_image_insertion_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    property_image_request = PropertyImageInsertionRequest(request.get_json())
+    response = property_image_insertion_service.insert_and_sign_property_image_url(customer_id,
+                                                                                   property_id,
+                                                                                   property_image_request.file_name)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)

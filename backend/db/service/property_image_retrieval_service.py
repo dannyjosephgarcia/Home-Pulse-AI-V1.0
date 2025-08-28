@@ -8,7 +8,7 @@ from backend.db.model.query.sql_statements import SELECT_PROPERTY_IMAGE_URL
 class PropertyImageRetrievalService:
     def __init__(self, hp_ai_connection_pool, s3_client, bucket_name):
         self.pool = hp_ai_connection_pool.pool
-        self.s3_client = s3_client.initialize_s3_client()
+        self.s3_client = s3_client.client
         self.bucket_name = bucket_name
 
     def fetch_and_sign_property_image_url(self, user_id, property_id):
