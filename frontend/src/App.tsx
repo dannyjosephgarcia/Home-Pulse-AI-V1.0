@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Properties from "./pages/Properties";
 import Dashboard from "./pages/Dashboard";
 import PropertyDetail from "./pages/PropertyDetail";
+import Profile from "./pages/Profile";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import NotFound from "./pages/NotFound";
@@ -35,6 +36,11 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
             <Route
               path="/dashboard"
               element={
