@@ -1,5 +1,5 @@
 INSERT_CUSTOMER_INTO_USER_TABLE = """INSERT INTO home_pulse_ai.users 
-(email, hashed_password, stripe_customer_id, is_paid) VALUES (%s, %s, %s, %s);"""
+(email, hashed_password, stripe_customer_id, is_paid, company_id) VALUES (%s, %s, %s, %s, %s);"""
 
 SELECT_CUSTOMER_FROM_USER_TABLE = """SELECT * FROM home_pulse_ai.users WHERE email=%s;"""
 
@@ -12,7 +12,7 @@ INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE = """INSERT INTO home_pulse_ai.a
 INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE = """INSERT INTO home_pulse_ai.structures 
 (property_id, structure_type, age_in_years) VALUES (%s, %s, %s);"""
 
-SELECT_CUSTOMER_FOR_AUTHENTICATION = """SELECT id, email, hashed_password, first_name, last_name 
+SELECT_CUSTOMER_FOR_AUTHENTICATION = """SELECT id, email, hashed_password, first_name, last_name, company_id 
 FROM home_pulse_ai.users WHERE email=%s;"""
 
 SELECT_PROPERTIES_BY_USER_ID = """SELECT * FROM home_pulse_ai.properties WHERE user_id=%s;"""
@@ -52,3 +52,18 @@ WHERE user_id=%s AND property_id=%s;"""
 
 INSERT_PROPERTY_IMAGE_URL = """INSERT INTO home_pulse_ai.property_images (user_id, property_id, s3_key) 
 VALUES (%s, %s, %s);"""
+
+SELECT_INVITATION_INFORMATION = """SELECT company_id, email, status, expires_at 
+FROM home_pulse_ai.invitations WHERE token=%s;"""
+
+SELECT_COMPANY_STATUS = """SELECT is_active FROM home_pulse_ai.companies WHERE id=%s;"""
+
+UPDATE_INVITATION_INFORMATION = """UPDATE home_pulse_ai.invitations SET accepted_at=%s WHERE email=%s;"""
+
+INSERT_SUBSCRIPTION_INFORMATION = """INSERT INTO home_pulse_ai.subscriptions 
+(user_id, status, period_start, period_end) VALUES (%s, %s, NOW(), %s);"""
+
+UPDATE_SUBSCRIPTION_STATUS = """UPDATE home_pulse_ai.subscriptions SET status='active' WHERE user_id=%s;"""
+
+SELECT_SUBSCRIPTION_STATUS = """SELECT status, period_end FROM home_pulse_ai.subscriptions WHERE user_id=%s"""
+

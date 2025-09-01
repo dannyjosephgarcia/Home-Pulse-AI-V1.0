@@ -5,10 +5,15 @@ import stripe
 from flask_bcrypt import Bcrypt
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
-from common.logging.error.error_messages import INVALID_PASSWORD, USER_NOT_FOUND, INTERNAL_SERVICE_ERROR
+from common.logging.error.error_messages import (INVALID_PASSWORD,
+                                                 USER_NOT_FOUND,
+                                                 INTERNAL_SERVICE_ERROR,
+                                                 INVALID_CUSTOMER)
 from backend.db.model.query.sql_statements import (SELECT_CUSTOMER_FOR_AUTHENTICATION,
                                                    SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST,
-                                                   SELECT_IS_PAID_STATUS_FOR_CUSTOMER)
+                                                   SELECT_IS_PAID_STATUS_FOR_CUSTOMER,
+                                                   SELECT_COMPANY_STATUS,
+                                                   SELECT_SUBSCRIPTION_STATUS)
 
 bcrypt = Bcrypt()
 
@@ -30,13 +35,18 @@ class CustomerAuthenticationService:
         user_results = self.fetch_user_email_and_password_for_authentication(
             cnx=cnx,
             email=email)
+        formatted_user_results = self.format_user_information_results(
+            user_results=user_results)
+        self._validate_customer(cnx=cnx,
+                                user_id=formatted_user_results['user_id'],
+                                company_id=formatted_user_results['company_id'])
         valid_jwt_token = self.generate_valid_jwt_token(
             password=password,
-            user_results=user_results)
+            formatted_user_results=formatted_user_results)
         cnx.close()
         response = {"token": valid_jwt_token,
-                    "user": {"id": user_results[0][0],
-                             "email": user_results[0][1]}}
+                    "user": {"id": formatted_user_results['user_id'],
+                             "email": formatted_user_results['user_email']}}
         logging.info(END_OF_METHOD)
         return response
 
@@ -130,6 +140,27 @@ class CustomerAuthenticationService:
             raise Error(INTERNAL_SERVICE_ERROR)
 
     @staticmethod
+    def format_user_information_results(user_results):
+        if not user_results:
+            logging.error('The provided email is not valid')
+            raise Error(USER_NOT_FOUND)
+        user_id = user_results[0][0]
+        user_email = user_results[0][1]
+        user_hashed_password = user_results[0][2]
+        first_name = user_results[0][3]
+        last_name = user_results[0][4]
+        company_id = user_results[0][5]
+        formatted_user_results = {
+            'user_id': user_id,
+            'user_email': user_email,
+            'user_hashed_password': user_hashed_password,
+            'first_name': first_name,
+            'last_name': last_name,
+            'company_id': company_id
+        }
+        return formatted_user_results
+
+    @staticmethod
     def fetch_is_paid_status_for_customer(cnx, user_id):
         """
         Checks to see if a customer's payment successfully
@@ -154,6 +185,45 @@ class CustomerAuthenticationService:
         logging.info(END_OF_METHOD)
         return is_paid_status_information
 
+    @staticmethod
+    def _validate_customer(cnx, user_id, company_id):
+        """
+        Validates the customer to allow them to login
+        :param cnx The MySQLConnectionPool
+        :param user_id: The internal identifier of a customer
+        :param company_id: The optional company id
+        """
+        logging.info(START_OF_METHOD)
+        try:
+            cursor = cnx.cursor()
+            if company_id:
+                cursor.execute(SELECT_COMPANY_STATUS, [company_id])
+                table = cursor.fetchall()
+                if not table:
+                    logging.error('The company associated with this customer could not be found')
+                    raise Error(INVALID_CUSTOMER)
+                status = table[0][0]
+                if not bool(int(status)):
+                    logging.error('The company associated with this customer is invalid')
+                    raise Error(INVALID_CUSTOMER)
+            else:
+                cursor.execute(SELECT_SUBSCRIPTION_STATUS, [user_id])
+                table = cursor.fetchall()
+                if not table:
+                    logging.error('The subscription status of this user could not be found')
+                    raise Error(INVALID_CUSTOMER)
+                status = table[0][0]
+                period_end = table[0][1]
+                if status != 'active' or period_end < datetime.datetime.now():
+                    logging.error('The customer is either expired or inactive')
+                    raise Error(INVALID_CUSTOMER)
+            cursor.close()
+        except Exception as e:
+            logging.error('An error occurred attempting to validate the customer',
+                          exc_info=True,
+                          extra={'information': {'error': {str(e)}}})
+            raise Error(INTERNAL_SERVICE_ERROR)
+
     def obtain_connection(self):
         try:
             cnx = self.pool.get_connection()
@@ -164,30 +234,22 @@ class CustomerAuthenticationService:
                           extra={'information': {'error': str(e)}})
             raise Error(INTERNAL_SERVICE_ERROR)
 
-    def generate_valid_jwt_token(self, password, user_results):
+    def generate_valid_jwt_token(self, password, formatted_user_results):
         """
         Generates a valid jwt token to send back to the frontend in the event a customer is authenticated
         :param password: The customer password
-        :param user_results: The results from the user table
+        :param formatted_user_results: The results from the user table
         :return: python str, a jwt token
         """
         logging.info(START_OF_METHOD)
-        if not user_results:
-            logging.error('The provided email is not valid')
-            raise Error(USER_NOT_FOUND)
-        user_id = user_results[0][0]
-        user_email = user_results[0][1]
-        user_hashed_password = user_results[0][2]
-        first_name = user_results[0][3]
-        last_name = user_results[0][4]
-        if not bcrypt.check_password_hash(user_hashed_password, password):
+        if not bcrypt.check_password_hash(formatted_user_results['user_hashed_password'], password):
             logging.error('The provided password is not valid')
             raise Error(INVALID_PASSWORD)
         payload = {
-            'user_id': user_id,
-            'email': user_email,
-            'first_name': first_name,
-            'last_name': last_name,
+            'user_id': formatted_user_results['user_id'],
+            'email': formatted_user_results['user_email'],
+            'first_name': formatted_user_results['first_name'],
+            'last_name': formatted_user_results['last_name'],
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         }
         valid_jwt_token = jwt.encode(payload, self.secret_key, algorithm="HS256")

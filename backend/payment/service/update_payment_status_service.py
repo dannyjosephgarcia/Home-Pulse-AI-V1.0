@@ -1,9 +1,9 @@
-import logging
-from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
-from common.logging.error.error import Error
-from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
-from backend.db.model.query.sql_statements import UPDATE_IS_PAID_STATUS_OF_CUSTOMER
 import stripe
+import logging
+from common.logging.error.error import Error
+from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
+from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
+from backend.db.model.query.sql_statements import UPDATE_IS_PAID_STATUS_OF_CUSTOMER, UPDATE_SUBSCRIPTION_STATUS
 
 
 class UpdatePaymentStatusService:
@@ -43,6 +43,9 @@ class UpdatePaymentStatusService:
             put_record_status = self.execute_update_statement_for_customer(
                 cnx=cnx,
                 user_id=user_id)
+            put_subscription_status = self.execute_update_statement_for_subscriptions_table(
+                cnx=cnx,
+                user_id=user_id)
             valid_jwt_token, email = self.customer_authentication_service.generate_valid_jwt_token_after_payment(
                 cnx=cnx,
                 user_id=user_id)
@@ -50,7 +53,8 @@ class UpdatePaymentStatusService:
             response = {"token": valid_jwt_token,
                         "user": {"id": user_id,
                                  "email": email},
-                        "pustRecordStatus": put_record_status}
+                        "putRecordStatus": put_record_status,
+                        "putSubscriptionStatus": put_subscription_status}
             logging.info(END_OF_METHOD)
             return response
         else:
@@ -80,6 +84,31 @@ class UpdatePaymentStatusService:
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
             raise Error(INTERNAL_SERVICE_ERROR)
+
+    @staticmethod
+    def execute_update_statement_for_subscriptions_table(cnx, user_id):
+        """
+
+        :param cnx:
+        :param user_id:
+        :return:
+        """
+        logging.info(START_OF_METHOD)
+        try:
+            cursor = cnx.cursor()
+            cursor.execute()
+            cnx.commit()
+            cursor.close()
+            put_record_status = 200
+            logging.info(END_OF_METHOD)
+            return put_record_status
+        except Exception as e:
+            logging.error('An issue occurred updating the subscriptions table')
+            raise Error(INTERNAL_SERVICE_ERROR)
+
+
+
+
 
     @staticmethod
     def validate_and_construct_event(payload, sig_header, webhook_secret):

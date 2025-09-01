@@ -1,5 +1,6 @@
 import re
 import logging
+from uuid import UUID
 from common.logging.error.error import Error
 from common.logging.error.error_messages import INVALID_REQUEST
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
@@ -10,6 +11,7 @@ class CustomerCreationRequest:
         self._validate_customer_creation_request(request)
         self.email = request['email']
         self.password = request['password']
+        self.token = request.get('token')
 
     @classmethod
     def _validate_customer_creation_request(cls, request):
@@ -24,6 +26,8 @@ class CustomerCreationRequest:
         if 'password' not in request:
             logging.error('The password field is a required field')
             raise Error(INVALID_REQUEST)
+        if 'token' in request:
+            cls._validate_customer_invite_token(request['token'])
         cls._validate_customer_email(request['email'])
         cls._validate_customer_password(request['password'])
         logging.info(END_OF_METHOD)
@@ -62,3 +66,18 @@ class CustomerCreationRequest:
         if not has_number:
             logging.error('The password provided must contain at least 1 digit')
             raise Error(INVALID_REQUEST)
+
+    @staticmethod
+    def _validate_customer_invite_token(token):
+        """
+        Validates the invite token if the user is coming from a licensed brokerage
+        :param token: a UUID token
+        """
+        try:
+            UUID(token)
+        except Exception as e:
+            logging.error('The token provided from the brokerage needs to be a UUID',
+                          exc_info=True,
+                          extra={'information': {'error': str(e)}})
+            raise Error(INVALID_REQUEST)
+
