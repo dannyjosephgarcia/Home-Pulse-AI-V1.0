@@ -21,3 +21,10 @@ WEBSCRAPING_ISSUE = ErrorCode(code="WEBSCRAPING_ISSUE",
 AWS_CONNECTION_ISSUE = ErrorCode(code="AWS_CONNECTION_ISSUE",
                                  message='There was an issue connecting to AWS',
                                  status=500)
+INVALID_INVITATION = ErrorCode(code="INVALID_INVITATION",
+                               message='The invitation UUID provided in the signup request is invalid',
+                               status=400)
+
+INVALID_CUSTOMER = ErrorCode(code='INVALID_CUSTOMER',
+                             message='The customer credentials are invalid',
+                             status=100)
