@@ -67,7 +67,9 @@ UPDATE_SUBSCRIPTION_STATUS = """UPDATE home_pulse_ai.subscriptions SET status='a
 
 SELECT_SUBSCRIPTION_STATUS = """SELECT status, period_end FROM home_pulse_ai.subscriptions WHERE user_id=%s"""
 
-SELECT_STRIPE_CUSTOMER_ID = """SELECT stripe_customer_id FROM home_pulse_ai.users WHERE user_id=%s;"""
+SELECT_STRIPE_CUSTOMER_ID = """SELECT stripe_customer_id FROM home_pulse_ai.users WHERE id=%s;"""
 
 UPDATE_SUBSCRIPTION_STATUS_FOR_DELETION = """UPDATE home_pulse_ai.subscriptions 
 SET status='canceled' WHERE user_id=%s;"""
+
+SELECT_USER_ID_BY_STRIPE_CUSTOMER = """SELECT id FROM home_pulse_ai.users WHERE stripe_customer_id=%s;"""

@@ -1,9 +1,8 @@
 import stripe
 import logging
-import requests
-from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
-from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR, DELETION_ISSUE
+from common.logging.error.error_messages import DELETION_ISSUE
+from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 
 
 class StripePaymentSubscriptionDeletionService:
@@ -25,7 +24,8 @@ class StripePaymentSubscriptionDeletionService:
         logging.info(END_OF_METHOD)
         return deletion_status
 
-    def retrieve_subscription_id_for_customer(self, stripe_customer_id):
+    @staticmethod
+    def retrieve_subscription_id_for_customer(stripe_customer_id):
         """
         Fetches the subscriptionId for a customer on the backend
         :param stripe_customer_id: The customerId on Stripe's end
@@ -33,11 +33,8 @@ class StripePaymentSubscriptionDeletionService:
         """
         logging.info(START_OF_METHOD)
         try:
-            response = requests.get(self.base_url + f'/v1/customers/{stripe_customer_id}',
-                                    auth=self.secret_key)
-            response.raise_for_status()
-            response_json = response.json()
-            subscription_id = response_json['subscriptions']['data'][0]['id']
+            subscription = stripe.Subscription.list(customer=stripe_customer_id)
+            subscription_id = subscription.data[0].id
             logging.info(END_OF_METHOD)
             return subscription_id
         except Exception as e:
@@ -46,7 +43,8 @@ class StripePaymentSubscriptionDeletionService:
                           extra={'information': {'error': str(e)}})
             raise Error(DELETION_ISSUE)
 
-    def invoke_stripe_deletion_endpoint(self, subscription_id):
+    @staticmethod
+    def invoke_stripe_deletion_endpoint(subscription_id):
         """
         Calls the Stripe backend to halt the customer's subscription status
         :param subscription_id: The internal id of a customer subscription
@@ -54,12 +52,14 @@ class StripePaymentSubscriptionDeletionService:
         """
         logging.info(START_OF_METHOD)
         try:
-            payload = {'cancel_at_period_end': 'true'}
-            response = requests.post(self.base_url + f'/v1/subscriptions/{subscription_id}',
-                                     data=payload,
-                                     auth=self.secret_key)
-            response.raise_for_status()
-            return 200
+            subscription = stripe.Subscription.modify(
+                subscription_id,
+                cancel_at_period_end=True
+            )
+            if subscription.cancel_at_period_end:
+                return 200
+            else:
+                raise Exception
         except Exception as e:
             logging.error('There was an issue calling the Stripe endpoint',
                           exc_info=True,

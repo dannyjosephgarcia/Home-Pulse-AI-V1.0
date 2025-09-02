@@ -44,21 +44,6 @@ def authenticate_customer_for_login(ctx,
     return jsonify(response)
 
 
-@home_pulse_db_routes_blueprint.route('/v1/customers/<user_id>/delete', methods=['DELETE'])
-@mdc.with_mdc(domain='home-pulse', subdomain='/v1/customers')
-@csrf.exempt
-@inject
-def delete_customer_subscription_status(ctx,
-                                        user_id,
-                                        customer_subscription_deletion_service=
-                                        Provide[Container.customer_subscription_deletion_service]):
-    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
-    logging.info(START_OF_METHOD)
-    response = customer_subscription_deletion_service.delete_customer_subscription_from_system(user_id)
-    logging.info(END_OF_METHOD)
-    return jsonify(response)
-
-
 @home_pulse_db_routes_blueprint.route('/v1/customers/post-payment-login', methods=['POST'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/customers')
 @csrf.exempt
@@ -71,5 +56,20 @@ def authenticate_customer_for_dashboard_access(ctx,
     customer_post_login_request = CustomerPostLoginRequest(request.get_json())
     response = customer_authentication_service.authenticate_users_payment_status_post_payment_login(
         customer_post_login_request.session_id)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
+@home_pulse_db_routes_blueprint.route('/v1/customers/<user_id>/cancel-subscription', methods=['DELETE'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/customers')
+@csrf.exempt
+@inject
+def delete_customer_subscription_status(ctx,
+                                        user_id,
+                                        customer_subscription_deletion_service=
+                                        Provide[Container.customer_subscription_deletion_service]):
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    logging.info(START_OF_METHOD)
+    response = customer_subscription_deletion_service.delete_customer_subscription_from_system(user_id)
     logging.info(END_OF_METHOD)
     return jsonify(response)

@@ -2,7 +2,7 @@ import logging
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error import Error
 from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR, DELETION_ISSUE
-from backend.db.model.query.sql_statements import SELECT_STRIPE_CUSTOMER_ID, UPDATE_SUBSCRIPTION_STATUS_FOR_DELETION
+from backend.db.model.query.sql_statements import SELECT_STRIPE_CUSTOMER_ID
 
 
 class CustomerSubscriptionDeletionService:
@@ -23,36 +23,9 @@ class CustomerSubscriptionDeletionService:
             user_id=user_id)
         deletion_status = self.stripe_deletion_service.delete_subscription_for_customer(
             stripe_customer_id=stripe_customer_id)
-        put_record_status = self.update_subscription_status_for_customer(
-            cnx=cnx,
-            user_id=user_id)
-        response = {'deletionStatus': deletion_status,
-                    'putRecordStatus': put_record_status}
+        response = {'deletionStatus': deletion_status}
         logging.info(END_OF_METHOD)
         return response
-
-    @staticmethod
-    def update_subscription_status_for_customer(cnx, user_id):
-        """
-        Updates the customer's status in our system
-        :param cnx: The MySQLConnectionPool
-        :param user_id: The internal id of a customer in our system
-        :return:
-        """
-        logging.info(START_OF_METHOD)
-        put_record_status = 200
-        try:
-            cursor = cnx.cursor()
-            cursor.execute(UPDATE_SUBSCRIPTION_STATUS_FOR_DELETION, [user_id])
-            cnx.commit()
-            cursor.close()
-            logging.info(END_OF_METHOD)
-            return put_record_status
-        except Exception as e:
-            logging.error('There was an issue updating the customer subscription in our table',
-                          exc_info=True,
-                          extra={'information': {'error': str(e)}})
-            return 500
 
     @staticmethod
     def fetch_stripe_customer_id_for_deletion(cnx, user_id):

@@ -22,6 +22,7 @@ from backend.db.service.property_image_insertion_service import PropertyImageIns
 from backend.db.service.customer_subscription_deletion_service import CustomerSubscriptionDeletionService
 from backend.payment.service.stripe_payment_subscription_deletion_service import (
     StripePaymentSubscriptionDeletionService)
+from backend.payment.service.delete_payment_status_service import DeletePaymentStatusService
 
 
 class Container(containers.DeclarativeContainer):
@@ -110,3 +111,7 @@ class Container(containers.DeclarativeContainer):
     customer_subscription_deletion_service = providers.Singleton(CustomerSubscriptionDeletionService,
                                                                  home_pulse_db_connection_pool,
                                                                  stripe_subscription_deletion_service)
+
+    delete_payment_status_service = providers.Singleton(DeletePaymentStatusService,
+                                                        home_pulse_db_connection_pool,
+                                                        config.stripe.webhook_secret_deletion)
