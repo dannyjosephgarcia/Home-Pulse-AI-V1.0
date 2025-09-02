@@ -18,6 +18,8 @@ stripe:
   payment_type: card
   price: price_1RsmlK2R3IIW0X0zwLIylvjr
   webhook_secret: ${STRIPE_WEBHOOK_SECRET}
+  webhook_secret_deletion: ${STRIPE_WEBHOOK_SECRET_DELETION}
+  base_url: https://api.stripe.com
 aws:
   access_key_id: ${AWS_ACCESS_KEY_ID}
   secret_access_key: ${AWS_SECRET_ACCESS_KEY}
