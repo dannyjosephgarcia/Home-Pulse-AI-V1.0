@@ -19,6 +19,9 @@ from backend.data_harvesting.client.sync_lowes_price_analysis_wrapper import Syn
 from backend.db.client.s3_client import S3Client
 from backend.db.service.property_image_retrieval_service import PropertyImageRetrievalService
 from backend.db.service.property_image_insertion_service import PropertyImageInsertionService
+from backend.db.service.customer_subscription_deletion_service import CustomerSubscriptionDeletionService
+from backend.payment.service.stripe_payment_subscription_deletion_service import (
+    StripePaymentSubscriptionDeletionService)
 
 
 class Container(containers.DeclarativeContainer):
@@ -99,3 +102,11 @@ class Container(containers.DeclarativeContainer):
                                                            home_pulse_db_connection_pool,
                                                            s3_client,
                                                            config.aws.bucket_name)
+
+    stripe_subscription_deletion_service = providers.Singleton(StripePaymentSubscriptionDeletionService,
+                                                               config.stripe.base_url,
+                                                               config.stripe.secret_key)
+
+    customer_subscription_deletion_service = providers.Singleton(CustomerSubscriptionDeletionService,
+                                                                 home_pulse_db_connection_pool,
+                                                                 stripe_subscription_deletion_service)

@@ -44,16 +44,13 @@ def receive_payment_completion_webhook(ctx,
     return jsonify(response)
 
 
-@stripe_payment_routes_blueprint.route('/v1/payment/cancel-subscription', methods=['POST'])
+@stripe_payment_routes_blueprint.route('/v1/payment/cancel-subscription', methods=['DELETE'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/payment')
 @csrf.exempt
 @inject
-def receive_payment_completion_webhook(ctx,
-                                       update_payment_status_service=
-                                       Provide[Container.update_payment_status_service]):
+def delete_customer_subscription(ctx,
+                                 ):
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     logging.info(START_OF_METHOD)
-    event = update_payment_status_service.perform_webhook_verification(request)
-    response = update_payment_status_service.update_payment_status_from_event(event)
     logging.info(END_OF_METHOD)
-    return jsonify(response)
+    return jsonify({})

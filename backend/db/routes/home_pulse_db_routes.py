@@ -48,13 +48,13 @@ def authenticate_customer_for_login(ctx,
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/customers')
 @csrf.exempt
 @inject
-def authenticate_customer_for_login(ctx,
-                                    user_id
-                                    ):
+def delete_customer_subscription_status(ctx,
+                                        user_id,
+                                        customer_subscription_deletion_service=
+                                        Provide[Container.customer_subscription_deletion_service]):
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     logging.info(START_OF_METHOD)
-    customer_authentication_request = CustomerAuthenticationRequest(request.get_json())
-    response = {}
+    response = customer_subscription_deletion_service.delete_customer_subscription_from_system(user_id)
     logging.info(END_OF_METHOD)
     return jsonify(response)
 
