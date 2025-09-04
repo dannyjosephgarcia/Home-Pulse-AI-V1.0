@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Lock, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { apiClient } from '../lib/api'
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -37,25 +38,16 @@ const Login = () => {
 
     try {
       if (isSignUp) {
-        // For signup, call the backend API directly.
-        const response = await fetch('https://home-pulse-api.onrender.com/v1/customers/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            password: password.trim()
-          }),
-        });
+        // For signup, use the API client directly to get checkout session
+        const { data, error } = await apiClient.signUp(email.trim(), password.trim());
 
-        if (!response.ok) {
-          throw new Error('Failed to create account');
-        }
-
-        const data = await response.json();
-
-        if (data.customerCheckoutSession) {
+        if (error) {
+          toast({
+            title: 'Sign Up Failed',
+            description: error.message || 'Please try again.',
+            variant: "destructive",
+          });
+        } else if (data?.customerCheckoutSession) {
           // Redirect to the checkout session URL
           window.location.href = data.customerCheckoutSession;
           return;
