@@ -29,7 +29,7 @@ UPDATE_FIRST_AND_LAST_OF_CUSTOMER = """UPDATE home_pulse_ai.users SET first_name
 
 SELECT_CUSTOMER_FIRST_AND_LAST = """SELECT first_name, last_name, email FROM home_pulse_ai.users WHERE id=%s;"""
 
-UPDATE_IS_PAID_STATUS_OF_CUSTOMER = """UPDATE home_pulse_ai.users SET is_paid=1 WHERE id=%s;"""
+UPDATE_IS_PAID_STATUS_OF_CUSTOMER = """UPDATE home_pulse_ai.users SET is_paid=1, stripe_customer_id=%s WHERE id=%s;"""
 
 SELECT_CUSTOMER_EMAIL_FIRST_AND_LAST = """SELECT email, first_name, last_name FROM home_pulse_ai.users WHERE id=%s;"""
 
@@ -73,3 +73,6 @@ UPDATE_SUBSCRIPTION_STATUS_FOR_DELETION = """UPDATE home_pulse_ai.subscriptions
 SET status='canceled' WHERE user_id=%s;"""
 
 SELECT_USER_ID_BY_STRIPE_CUSTOMER = """SELECT id FROM home_pulse_ai.users WHERE stripe_customer_id=%s;"""
+
+UPDATE_SUBSCRIPTION_TABLE_UPON_PAYMENT_COMPLETION = """UPDATE home_pulse_ai.subscriptions SET status='active', 
+subscription_id=%s WHERE user_id=%s;"""

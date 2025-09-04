@@ -3,7 +3,8 @@ import logging
 from common.logging.error.error import Error
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from common.logging.error.error_messages import INTERNAL_SERVICE_ERROR
-from backend.db.model.query.sql_statements import UPDATE_IS_PAID_STATUS_OF_CUSTOMER, UPDATE_SUBSCRIPTION_STATUS
+from backend.db.model.query.sql_statements import (UPDATE_IS_PAID_STATUS_OF_CUSTOMER,
+                                                   UPDATE_SUBSCRIPTION_TABLE_UPON_PAYMENT_COMPLETION)
 
 
 class UpdatePaymentStatusService:
@@ -38,14 +39,18 @@ class UpdatePaymentStatusService:
         event_type = event['type']
         if event_type == "checkout.session.completed":
             session = event['data']['object']
+            stripe_customer_id = session.get("customer")
+            subscription_id = session.get("subscription")
             user_id = session.metadata.get("userId")
             cnx = self.obtain_connection()
             put_record_status = self.execute_update_statement_for_customer(
                 cnx=cnx,
-                user_id=user_id)
+                user_id=user_id,
+                stripe_customer_id=stripe_customer_id)
             put_subscription_status = self.execute_update_statement_for_subscriptions_table(
                 cnx=cnx,
-                user_id=user_id)
+                user_id=user_id,
+                subscription_id=subscription_id)
             valid_jwt_token, email = self.customer_authentication_service.generate_valid_jwt_token_after_payment(
                 cnx=cnx,
                 user_id=user_id)
@@ -63,17 +68,18 @@ class UpdatePaymentStatusService:
             return response
 
     @staticmethod
-    def execute_update_statement_for_customer(cnx, user_id):
+    def execute_update_statement_for_customer(cnx, user_id, stripe_customer_id):
         """
         Updates the is_paid status of a customer in our system
         :param cnx: The connection to our pool
         :param user_id: The internal identifier of a customer in our system
+        :param stripe_customer_id: The customerId for a stripe user
         :return: python int
         """
         logging.info(START_OF_METHOD)
         try:
             cursor = cnx.cursor()
-            cursor.execute(UPDATE_IS_PAID_STATUS_OF_CUSTOMER, [user_id])
+            cursor.execute(UPDATE_IS_PAID_STATUS_OF_CUSTOMER, [stripe_customer_id, user_id])
             cnx.commit()
             cursor.close()
             put_record_status = 200
@@ -86,17 +92,18 @@ class UpdatePaymentStatusService:
             raise Error(INTERNAL_SERVICE_ERROR)
 
     @staticmethod
-    def execute_update_statement_for_subscriptions_table(cnx, user_id):
+    def execute_update_statement_for_subscriptions_table(cnx, user_id, subscription_id):
         """
-
-        :param cnx:
-        :param user_id:
-        :return:
+        Updates the subscription table
+        :param cnx: The MySQLConnectionPool
+        :param user_id: The internal id of a customer
+        :param subscription_id: The subscription id of a customer
+        :return: python int
         """
         logging.info(START_OF_METHOD)
         try:
             cursor = cnx.cursor()
-            cursor.execute()
+            cursor.execute(UPDATE_SUBSCRIPTION_TABLE_UPON_PAYMENT_COMPLETION, [subscription_id, user_id])
             cnx.commit()
             cursor.close()
             put_record_status = 200
