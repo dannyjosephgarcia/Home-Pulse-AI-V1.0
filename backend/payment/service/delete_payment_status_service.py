@@ -36,7 +36,7 @@ class DeletePaymentStatusService:
         """
         logging.info(START_OF_METHOD)
         event_type = event['type']
-        if event_type == 'customer.subscription.delete':
+        if event_type == 'customer.subscription.deleted':
             stripe_customer_id = event['data']['object']['customer']
             cnx = self.obtain_connection()
             user_id = self.fetch_user_id_given_stripe_customer(

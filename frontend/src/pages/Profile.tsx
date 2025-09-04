@@ -19,6 +19,7 @@ const Profile = () => {
   const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,6 +69,29 @@ const Profile = () => {
     input.click();
   };
 
+    const handleCancelSubscription = async () => {
+    if (!user?.user_id) {
+      toast.error('User not found');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await apiClient.cancelSubscription(user.user_id);
+
+      if (error) {
+        toast.error('Failed to cancel subscription');
+      } else {
+        toast.success('Subscription canceled successfully. Your subscription will end at the end of your current billing cycle.');
+        setShowCancelDialog(false);
+      }
+    } catch (error) {
+      toast.error('Network error while canceling subscription');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const sidebarItems = [
     { id: 'profile', title: 'Update Profile', icon: User },
     { id: 'subscription', title: 'Manage Subscription', icon: CreditCard },
@@ -102,7 +126,7 @@ const Profile = () => {
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => setActiveTab(item.id)}
-                    className={`text-blue-100/80 hover:text-white hover:bg-blue-500/20 transition-all duration-200 ${
+                    className={`text-blue-100/80 hover:text-black hover:bg-blue-500/20 transition-all duration-200 ${
                       activeTab === item.id ? 'bg-blue-500/50 text-white shadow-lg' : ''
                     }`}
                   >
@@ -180,13 +204,64 @@ const Profile = () => {
                 View and manage your subscription plan
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-32">
-                <div className="text-center text-white/70">
-                  <CreditCard className="h-8 w-8 mx-auto mb-2" />
-                  <p>Subscription management coming soon</p>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <h3 className="text-white font-medium mb-2">Current Subscription</h3>
+                  <p className="text-white/70 text-sm mb-4">
+                    Manage your active subscription or cancel at any time.
+                  </p>
+
+                  <div className="flex flex-col space-y-3">
+                    <Button
+                      onClick={() => setShowCancelDialog(true)}
+                      variant="outline"
+                      className="bg-red-500/20 border-red-500/50 text-red-100 hover:bg-red-500/30 hover:text-white"
+                    >
+                      Cancel Subscription
+                    </Button>
+
+                    <Button
+                      onClick={() => window.open('mailto:support@homepulse.com', '_blank')}
+                      variant="outline"
+                      className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                      Contact Support
+                    </Button>
+                  </div>
                 </div>
               </div>
+
+              {/* Cancel Confirmation Dialog */}
+              {showCancelDialog && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                  <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4 border border-white/20">
+                    <h3 className="text-white text-lg font-semibold mb-3">
+                      Cancel Subscription
+                    </h3>
+                    <p className="text-white/70 mb-6">
+                      Are you sure you want to cancel your subscription? Your subscription will remain active until the end of your current billing cycle.
+                    </p>
+
+                    <div className="flex space-x-3">
+                      <Button
+                        onClick={handleCancelSubscription}
+                        disabled={isLoading}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        {isLoading ? 'Canceling...' : 'Yes, Cancel'}
+                      </Button>
+                      <Button
+                        onClick={() => setShowCancelDialog(false)}
+                        variant="outline"
+                        className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      >
+                        No, Keep Subscription
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         );

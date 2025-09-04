@@ -173,6 +173,12 @@ class ApiClient {
     });
   }
 
+    async cancelSubscription(userId: number): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/customers/${userId}/cancel-subscription`, {
+      method: 'DELETE',
+    });
+  }
+
 
 }
 

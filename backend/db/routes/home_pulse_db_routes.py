@@ -5,6 +5,7 @@ from backend.security.csrf import csrf
 from backend.app.container import Container
 from flask import jsonify, request, Blueprint
 from dependency_injector.wiring import inject, Provide
+from common.decorators.token_required import token_required
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from backend.db.model.customer_creation_request import CustomerCreationRequest
 from backend.db.model.customer_authentication_request import CustomerAuthenticationRequest
@@ -63,6 +64,7 @@ def authenticate_customer_for_dashboard_access(ctx,
 @home_pulse_db_routes_blueprint.route('/v1/customers/<user_id>/cancel-subscription', methods=['DELETE'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/customers')
 @csrf.exempt
+@token_required
 @inject
 def delete_customer_subscription_status(ctx,
                                         user_id,
