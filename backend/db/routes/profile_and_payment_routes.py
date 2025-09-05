@@ -28,3 +28,18 @@ def insert_property_information_into_table(ctx,
     refreshed_token = customer_profile_update_service.update_user_first_and_last_name(
         user_id, customer_profile_update_request.first_name, customer_profile_update_request.last_name)
     return jsonify(refreshed_token)
+
+
+@profile_and_payments_blueprint.route('/v1/customers/<user_id>/retrieve-subscription-information', methods=['GET'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/customers')
+@csrf.exempt
+@token_required
+@inject
+def fetch_subscription_information_for_customer(ctx,
+                                                user_id,
+                                                customer_subscription_retrieval_service=
+                                                Provide[Container.customer_subscription_retrieval_service]):
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    logging.info(START_OF_METHOD)
+    response = customer_subscription_retrieval_service.fetch_subscription_information_for_customer(user_id)
+    return jsonify(response)
