@@ -20,6 +20,8 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,6 +32,30 @@ const Profile = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const fetchSubscriptionInfo = async () => {
+    if (!user?.user_id) return;
+
+    setLoadingSubscription(true);
+    try {
+      const { data, error } = await apiClient.getSubscriptionInformation(user.user_id);
+      if (error) {
+        toast.error('Failed to load subscription information');
+      } else {
+        setSubscriptionInfo(data);
+      }
+    } catch (error) {
+      toast.error('Network error while loading subscription information');
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'subscription') {
+      fetchSubscriptionInfo();
+    }
+  }, [activeTab, user]);
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,75 +222,127 @@ const Profile = () => {
         );
 
       case 'subscription':
-        return (
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white">Manage Subscription</CardTitle>
-              <CardDescription className="text-white/70">
-                View and manage your subscription plan
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <h3 className="text-white font-medium mb-2">Current Subscription</h3>
-                  <p className="text-white/70 text-sm mb-4">
-                    Manage your active subscription or cancel at any time.
-                  </p>
+          return (
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-white text-xl font-semibold">
+                  Manage Subscription
+                </CardTitle>
+                <CardDescription className="text-white/70">
+                  View and manage your subscription plan
+                </CardDescription>
+              </CardHeader>
 
-                  <div className="flex flex-col space-y-3">
-                    <Button
-                      onClick={() => setShowCancelDialog(true)}
-                      variant="outline"
-                      className="bg-red-500/20 border-red-500/50 text-red-100 hover:bg-red-500/30 hover:text-white"
+              <CardContent className="space-y-6">
+                {loadingSubscription ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-3">
+                    <svg
+                      className="animate-spin h-8 w-8 text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
                     >
-                      Cancel Subscription
-                    </Button>
-
-                    <Button
-                      onClick={() => window.open('mailto:support@homepulse.com', '_blank')}
-                      variant="outline"
-                      className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                    >
-                      Contact Support
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Cancel Confirmation Dialog */}
-              {showCancelDialog && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                  <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4 border border-white/20">
-                    <h3 className="text-white text-lg font-semibold mb-3">
-                      Cancel Subscription
-                    </h3>
-                    <p className="text-white/70 mb-6">
-                      Are you sure you want to cancel your subscription? Your subscription will remain active until the end of your current billing cycle.
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    <p className="text-white/70 text-sm">
+                      Loading subscription information...
                     </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-6">
+                    {/* Subscription Info Panel */}
+                    <div className="bg-white/5 rounded-xl p-5 border border-white/10 shadow-inner">
+                      <h3 className="text-white font-medium mb-2">
+                        Current Subscription
+                      </h3>
+                      <p className="text-white/70 text-sm mb-4">
+                        Manage your active subscription or cancel at any time.
+                      </p>
 
-                    <div className="flex space-x-3">
-                      <Button
-                        onClick={handleCancelSubscription}
-                        disabled={isLoading}
-                        className="flex-1 bg-red-500 hover:bg-red-600 text-white"
-                      >
-                        {isLoading ? 'Canceling...' : 'Yes, Cancel'}
-                      </Button>
-                      <Button
-                        onClick={() => setShowCancelDialog(false)}
-                        variant="outline"
-                        className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
-                      >
-                        No, Keep Subscription
-                      </Button>
+                      {subscriptionInfo?.subscription_end && (
+                        <div className="bg-blue-500/10 rounded-lg p-3 mb-4 border border-blue-500/20">
+                          <p className="text-blue-100 text-sm">
+                            <strong>Subscription End Date:</strong>{" "}
+                            {new Date(
+                              subscriptionInfo.subscription_end
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="grid gap-3">
+                        <Button
+                          onClick={() => setShowCancelDialog(true)}
+                          variant="outline"
+                          className="bg-red-500/20 border-red-500/50 text-red-100 hover:bg-red-500/30 hover:text-white rounded-xl"
+                        >
+                          Cancel Subscription
+                        </Button>
+
+                        <Button
+                          onClick={() =>
+                            window.open(
+                              "mailto:nextlevelcodingacademy@gmail.com",
+                              "_blank"
+                            )
+                          }
+                          variant="outline"
+                          className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl"
+                        >
+                          Contact Support
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        );
+                )}
+
+                {/* Cancel Confirmation Dialog */}
+                {showCancelDialog && (
+                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 border border-white/20 shadow-lg">
+                      <h3 className="text-white text-lg font-semibold mb-3">
+                        Cancel Subscription
+                      </h3>
+                      <p className="text-white/70 mb-6">
+                        Are you sure you want to cancel your subscription? Your
+                        subscription will remain active until the end of your current
+                        billing cycle.
+                      </p>
+
+                      <div className="flex space-x-3">
+                        <Button
+                          onClick={handleCancelSubscription}
+                          disabled={isLoading}
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                        >
+                          {isLoading ? "Canceling..." : "Yes, Cancel"}
+                        </Button>
+                        <Button
+                          onClick={() => setShowCancelDialog(false)}
+                          variant="outline"
+                          className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg"
+                        >
+                          No, Keep Subscription
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
 
       case 'picture':
         return (

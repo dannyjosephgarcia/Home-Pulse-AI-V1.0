@@ -20,6 +20,7 @@ from backend.db.client.s3_client import S3Client
 from backend.db.service.property_image_retrieval_service import PropertyImageRetrievalService
 from backend.db.service.property_image_insertion_service import PropertyImageInsertionService
 from backend.db.service.customer_subscription_deletion_service import CustomerSubscriptionDeletionService
+from backend.db.service.customer_subscription_retrieval_service import CustomerSubscriptionRetrievalService
 from backend.payment.service.stripe_payment_subscription_deletion_service import (
     StripePaymentSubscriptionDeletionService)
 from backend.payment.service.delete_payment_status_service import DeletePaymentStatusService
@@ -115,3 +116,6 @@ class Container(containers.DeclarativeContainer):
     delete_payment_status_service = providers.Singleton(DeletePaymentStatusService,
                                                         home_pulse_db_connection_pool,
                                                         config.stripe.webhook_secret_deletion)
+
+    customer_subscription_retrieval_service = providers.Singleton(CustomerSubscriptionRetrievalService,
+                                                                  home_pulse_db_connection_pool)

@@ -76,3 +76,6 @@ SELECT_USER_ID_BY_STRIPE_CUSTOMER = """SELECT id FROM home_pulse_ai.users WHERE 
 
 UPDATE_SUBSCRIPTION_TABLE_UPON_PAYMENT_COMPLETION = """UPDATE home_pulse_ai.subscriptions SET status='active', 
 subscription_id=%s WHERE user_id=%s;"""
+
+SELECT_SUBSCRIPTION_INFORMATION = """SELECT status, subscription_id, period_end FROM home_pulse_ai.subscriptions 
+WHERE user_id=%s;"""

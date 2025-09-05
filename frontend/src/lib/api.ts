@@ -179,6 +179,12 @@ class ApiClient {
     });
   }
 
+    async getSubscriptionInformation(userId: number): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/customers/${userId}/retrieve-subscription-information`, {
+      method: 'GET',
+    });
+  }
+
 
 }
 
