@@ -20,6 +20,7 @@ from backend.db.client.s3_client import S3Client
 from backend.db.service.property_image_retrieval_service import PropertyImageRetrievalService
 from backend.db.service.property_image_insertion_service import PropertyImageInsertionService
 from backend.db.service.customer_subscription_deletion_service import CustomerSubscriptionDeletionService
+from backend.home_bot_model.service.home_bot_ai_service import HomeBotAIService
 from backend.db.service.customer_subscription_retrieval_service import CustomerSubscriptionRetrievalService
 from backend.payment.service.stripe_payment_subscription_deletion_service import (
     StripePaymentSubscriptionDeletionService)
@@ -119,3 +120,8 @@ class Container(containers.DeclarativeContainer):
 
     customer_subscription_retrieval_service = providers.Singleton(CustomerSubscriptionRetrievalService,
                                                                   home_pulse_db_connection_pool)
+
+    home_bot_ai_service = providers.Singleton(HomeBotAIService,
+                                              config.home_bot.index_file_path,
+                                              config.home_bot.metadata_file_path,
+                                              config.home_bot.neighbors_threshold)
