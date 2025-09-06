@@ -30,3 +30,6 @@ INVALID_CUSTOMER = ErrorCode(code='INVALID_CUSTOMER',
 DELETION_ISSUE = ErrorCode(code='DELETION_ISSUE',
                            message='The customer subscription could not be canceled',
                            status=500)
+HOME_BOT_AI_ERROR = ErrorCode(code='HOME_BOT_AI_ERROR',
+                              message='There was an issue booting up HomeBot',
+                              status=500)

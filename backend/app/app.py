@@ -19,6 +19,8 @@ from backend.payment.routes.stripe_payment_routes import stripe_payment_routes_b
 from backend.payment.routes import stripe_payment_routes
 from backend.data_harvesting.routes.appliance_information_routes import appliance_information_routes_blueprint
 from backend.data_harvesting.routes import appliance_information_routes
+from backend.home_bot_model.routes.home_bot_routes import home_bot_routes_blueprint
+from backend.home_bot_model.routes import home_bot_routes
 
 
 def create_app():
@@ -33,11 +35,13 @@ def create_app():
     flask_app.register_blueprint(profile_and_payments_blueprint)
     flask_app.register_blueprint(stripe_payment_routes_blueprint)
     flask_app.register_blueprint(appliance_information_routes_blueprint)
+    flask_app.register_blueprint(home_bot_routes_blueprint)
     flask_app.container.wire(modules=[home_pulse_db_routes,
                                       property_routes,
                                       profile_and_payment_routes,
                                       stripe_payment_routes,
-                                      appliance_information_routes])
+                                      appliance_information_routes,
+                                      home_bot_routes])
     csrf.init_app(flask_app)
 
     logging.config.dictConfig(logging_cfg.cfg)

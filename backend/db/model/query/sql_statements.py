@@ -79,3 +79,6 @@ subscription_id=%s WHERE user_id=%s;"""
 
 SELECT_SUBSCRIPTION_INFORMATION = """SELECT status, subscription_id, period_end FROM home_pulse_ai.subscriptions 
 WHERE user_id=%s;"""
+
+SELECT_HOME_BOT_EMBEDDING_INFORMATION = """SELECT id, brand, model, category, avg_lifespan_years 
+FROM home_pulse_ai.home_bot_training_information;"""

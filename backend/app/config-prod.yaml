@@ -25,3 +25,7 @@ aws:
   secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   region_name: us-east-1
   bucket_name: home-pulse-ai-property-photos
+home_bot:
+  index_file_path: ./backend/home_bot_model/index/appliances.index
+  metadata_file_path: ./backend/home_bot_model/index/metadata.pkl
+  neighbors_threshold: 3
