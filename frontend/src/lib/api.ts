@@ -185,6 +185,13 @@ class ApiClient {
     });
   }
 
+  async askLifecycleQuestion(question: string, applianceAge: number): Promise<{ data: any | null; error: any }> {
+    return this.request('/v1/home-bot/ask-lifecycle-question', {
+      method: 'POST',
+      body: JSON.stringify({ question, applianceAge }),
+    });
+  }
+
 
 }
 

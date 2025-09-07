@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { HomeBot } from '../components/HomeBot';
 import 'leaflet/dist/leaflet.css';
 
 // Type declaration for MapContainer props
@@ -462,7 +463,7 @@ const PropertyDetail = () => {
             {/* Auto-locate Button */}
             <div className="p-4 pb-2">
               <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                <CardContent className="p-4">
+                <CardContent className="p-4 mt-4">
                   <Button
                     onClick={() => property?.address && geocodeAddress(property.address)}
                     disabled={!property?.address || isGeocodingLoading}
@@ -510,9 +511,9 @@ const PropertyDetail = () => {
                     <div className="h-full flex items-center justify-center text-center">
                       <div>
                         <MapPin className="h-16 w-16 text-white/50 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-white mb-2">No Location Set</h3>
+                        <h3 className="text-lg font-semibold text-white mb-2">Find Property</h3>
                         <p className="text-white/70 text-sm mb-4">
-                          Enter your OpenCage API key and click "Locate on Map" to display the property location.
+                          Search for the geographic location of your property.
                         </p>
                         <p className="text-white/60 text-xs">
                           Address: {property.address || 'No address available'}
@@ -524,6 +525,11 @@ const PropertyDetail = () => {
               </Card>
             </div>
           </div>
+        </div>
+
+        {/* Right Panel - HomeBot Chat */}
+        <div className="w-1/3 bg-white/5 backdrop-blur-sm border-l border-white/20 p-6">
+          <HomeBot appliances={appliances} />
         </div>
       </div>
     </div>

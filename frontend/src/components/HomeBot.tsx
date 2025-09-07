@@ -31,7 +31,7 @@ export const HomeBot = ({ appliances }: HomeBotProps) => {
     {
       id: '1',
       type: 'bot',
-      content: "Hello! I'm HomeBot, your AI assistant for home maintenance questions. Select an appliance and ask me anything about its lifecycle, maintenance, or replacement!",
+      content: "Hello! I'm HomeBot, your AI assistant for home maintenance questions. I'm still a model in training, so for now, I can only answer questions about the lifecycle of an appliance!",
       timestamp: new Date(),
     }
   ]);
