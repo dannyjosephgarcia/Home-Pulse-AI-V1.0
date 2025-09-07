@@ -1,5 +1,6 @@
 import faiss
 import pickle
+import datetime
 import logging
 from common.logging.error.error import Error
 from sentence_transformers import SentenceTransformer
@@ -52,11 +53,33 @@ class HomeBotAIService:
             brand = record['brand']
             appliance_model = record['model']
             average_life_span = record['avg_lifespan_years']
-            response = f"A {brand} {appliance_model} typically lasts {int(average_life_span)} years."
+            answer = f"A {brand} {appliance_model} typically lasts {int(average_life_span)} years."
             logging.info(END_OF_METHOD)
-            return response
+            return answer, average_life_span
         except Exception as e:
             logging.error('An issue occurred generating a response to the question',
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
             return "Sorry, I'm having trouble finding an answer to your question. Contact support because I'm an idiot!"
+
+    @staticmethod
+    def format_question_response(answer, appliance_age, average_life_span):
+        """
+        Formats the response from the route
+        :param answer: The answer to the query sent by the user
+        :param appliance_age: The age of the appliance
+        :param average_life_span: The average lifespan of the make and model
+        :return: python dict
+        """
+        logging.info(START_OF_METHOD)
+        current_date = datetime.datetime.today().date()
+        time_diff = int(average_life_span) - int(appliance_age)
+        if time_diff <= 0:
+            forecasted_replacement_date = current_date
+        else:
+            years = time_diff * 52
+            forecasted_replacement_date = current_date + datetime.timedelta(weeks=years)
+        response = {'answer': answer,
+                    'forecasted_replacement_date': datetime.datetime.strftime(forecasted_replacement_date, '%Y-%m-%d')}
+        logging.info(END_OF_METHOD)
+        return response

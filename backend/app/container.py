@@ -25,6 +25,7 @@ from backend.db.service.customer_subscription_retrieval_service import CustomerS
 from backend.payment.service.stripe_payment_subscription_deletion_service import (
     StripePaymentSubscriptionDeletionService)
 from backend.payment.service.delete_payment_status_service import DeletePaymentStatusService
+from backend.db.service.forecasted_replacement_date_update_service import ForecastedReplacementDateUpdateService
 
 
 class Container(containers.DeclarativeContainer):
@@ -125,3 +126,6 @@ class Container(containers.DeclarativeContainer):
                                               config.home_bot.index_file_path,
                                               config.home_bot.metadata_file_path,
                                               config.home_bot.neighbors_threshold)
+
+    forecasted_replacement_date_update_service = providers.Singleton(ForecastedReplacementDateUpdateService,
+                                                                     home_pulse_db_connection_pool)
