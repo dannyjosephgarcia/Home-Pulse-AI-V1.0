@@ -52,7 +52,7 @@ class HomeBotAIService:
             brand = record['brand']
             appliance_model = record['model']
             average_life_span = record['avg_lifespan_years']
-            response = f"A {brand} {appliance_model} typically lasts {average_life_span}."
+            response = f"A {brand} {appliance_model} typically lasts {int(average_life_span)} years."
             logging.info(END_OF_METHOD)
             return response
         except Exception as e:
