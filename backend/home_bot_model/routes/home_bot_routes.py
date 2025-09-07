@@ -23,7 +23,8 @@ def ask_home_bot_appliance_lifecycle_query(ctx,
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     logging.info(START_OF_METHOD)
     ask_home_bot_request = AskHomeBotLifeCycleRequest(request.get_json())
-    answer = home_bot_ai_service.generate_lifecycle_query_answer(ask_home_bot_request)
-    response = {'answer': answer}
+    answer, average_life_span = home_bot_ai_service.generate_lifecycle_query_answer(ask_home_bot_request)
+    response = home_bot_ai_service.format_question_response(answer, ask_home_bot_request.appliance_age,
+                                                            average_life_span)
     logging.info(END_OF_METHOD)
     return jsonify(response)

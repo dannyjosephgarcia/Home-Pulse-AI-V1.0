@@ -82,3 +82,6 @@ WHERE user_id=%s;"""
 
 SELECT_HOME_BOT_EMBEDDING_INFORMATION = """SELECT id, brand, model, category, avg_lifespan_years 
 FROM home_pulse_ai.home_bot_training_information;"""
+
+UPDATE_FORECASTED_REPLACEMENT_DATE = """UPDATE home_pulse_ai.appliances 
+SET forecasted_replacement_date=%s WHERE property_id=%s AND appliance_type=%s;"""

@@ -10,6 +10,7 @@ from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
 from backend.db.model.update_tenant_information_request import UpdateTenantInformationRequest
 from backend.db.model.tenant_creation_request import TenantCreationRequest
 from backend.db.model.property_image_insertion_request import PropertyImageInsertionRequest
+from backend.db.model.update_forecasted_date_request import UpdateForecastedDateRequest
 
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
@@ -110,6 +111,25 @@ def fetch_tenant_information_for_dashboard(ctx,
     logging.info(START_OF_METHOD)
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     response = tenant_information_retrieval_service.fetch_tenant_information(property_id=property_id)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/appliances/forecasted-date', methods=['PUT'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def update_forecasted_replacement_date_from_model(ctx,
+                                                  property_id,
+                                                  forecasted_replacement_date_update_service=
+                                                  Provide[Container.forecasted_replacement_date_update_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    update_forecasted_date_request = UpdateForecastedDateRequest(int(property_id), request.get_json())
+    response = forecasted_replacement_date_update_service.update_forecasted_replacement_date(
+        update_forecasted_date_request.property_id, update_forecasted_date_request.appliance_type,
+        update_forecasted_date_request.forecasted_replacement_date)
     logging.info(END_OF_METHOD)
     return jsonify(response)
 
