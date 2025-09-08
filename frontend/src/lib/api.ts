@@ -192,6 +192,17 @@ class ApiClient {
     });
   }
 
+    async updateApplianceForecastedDate(propertyId: number, applianceType: string, forecastedDate: string): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/appliances/forecasted-date`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        propertyId: propertyId,
+        applianceType: applianceType,
+        forecastedReplacementDate: forecastedDate
+      }),
+    });
+  }
+
 
 }
 

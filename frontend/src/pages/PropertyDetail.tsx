@@ -529,7 +529,18 @@ const PropertyDetail = () => {
 
         {/* Right Panel - HomeBot Chat */}
         <div className="w-1/3 bg-white/5 backdrop-blur-sm border-l border-white/20 p-6">
-          <HomeBot appliances={appliances} />
+          <HomeBot
+            appliances={appliances}
+            propertyId={property.id}
+            onApplianceUpdate={(applianceType, newDate) => {
+              // Update the appliances state with the new forecasted date
+              setAppliances(prev => prev.map(appliance =>
+                appliance.appliance_type === applianceType
+                  ? { ...appliance, forecasted_replacement_date: newDate }
+                  : appliance
+              ));
+            }}
+          />
         </div>
       </div>
     </div>
