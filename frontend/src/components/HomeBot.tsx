@@ -20,18 +20,22 @@ interface Message {
   content: string;
   timestamp: Date;
   applianceType?: string;
+  forecastedDate?: string;
+  showUpdateOption?: boolean;
 }
 
 interface HomeBotProps {
   appliances: Appliance[];
+  propertyId?: number;
+  onApplianceUpdate?: (applianceType: string, newDate: string) => void;
 }
 
-export const HomeBot = ({ appliances }: HomeBotProps) => {
+export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'bot',
-      content: "Hello! I'm HomeBot, your AI assistant for home maintenance questions. I'm still a model in training, so for now, I can only answer questions about the lifecycle of an appliance!",
+      content: "Hello! I'm HomeBot, your AI assistant for home maintenance questions. Select an appliance and ask me anything about its lifecycle, maintenance, or replacement!",
       timestamp: new Date(),
     }
   ]);
@@ -99,6 +103,9 @@ export const HomeBot = ({ appliances }: HomeBotProps) => {
         type: 'bot',
         content: data?.response || data?.answer || 'I received your question but couldn\'t generate a proper response.',
         timestamp: new Date(),
+        forecastedDate: data?.forecasted_replacement_date,
+        showUpdateOption: !!data?.forecasted_replacement_date && !!propertyId,
+        applianceType: selectedAppliance.appliance_type,
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -115,6 +122,46 @@ export const HomeBot = ({ appliances }: HomeBotProps) => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+    const handleUpdateForecastedDate = async (messageId: string, applianceType: string, forecastedDate: string) => {
+    if (!propertyId) {
+      toast.error('Property ID not available');
+      return;
+    }
+
+    try {
+      const { data, error } = await apiClient.updateApplianceForecastedDate(
+        propertyId,
+        applianceType,
+        forecastedDate
+      );
+
+      if (error) {
+        console.error('Error updating forecasted date:', error);
+        toast.error('Failed to update forecasted date');
+        return;
+      }
+
+      if (data?.putRecordStatus === 200) {
+        toast.success('Forecasted date updated successfully');
+
+        // Remove the update option from the message
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId ? { ...msg, showUpdateOption: false } : msg
+        ));
+
+        // Call the callback to update the parent component
+        if (onApplianceUpdate) {
+          onApplianceUpdate(applianceType, forecastedDate);
+        }
+      } else {
+        toast.error('Failed to update forecasted date');
+      }
+    } catch (error) {
+      console.error('Error updating forecasted date:', error);
+      toast.error('Network error while updating forecasted date');
     }
   };
 
@@ -163,6 +210,20 @@ export const HomeBot = ({ appliances }: HomeBotProps) => {
                         </div>
                       )}
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      {message.showUpdateOption && message.forecastedDate && message.applianceType && (
+                        <div className="mt-3 p-2 bg-white/10 rounded-lg border border-white/20">
+                          <p className="text-xs text-white/80 mb-2">
+                            New forecasted replacement date: {new Date(message.forecastedDate).toLocaleDateString()}
+                          </p>
+                          <Button
+                            size="sm"
+                            onClick={() => handleUpdateForecastedDate(message.id, message.applianceType!, message.forecastedDate!)}
+                            className="bg-primary hover:bg-primary/90 text-white text-xs px-3 py-1"
+                          >
+                            Select to update replacement date
+                          </Button>
+                        </div>
+                      )}
                       <div className="text-xs opacity-60 mt-1">
                         {message.timestamp.toLocaleTimeString([], {
                           hour: '2-digit',
