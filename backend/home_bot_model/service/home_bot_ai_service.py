@@ -53,9 +53,19 @@ class HomeBotAIService:
             brand = record['brand']
             appliance_model = record['model']
             average_life_span = record['avg_lifespan_years']
-            answer = f"A {brand} {appliance_model} typically lasts {int(average_life_span)} years."
+            current_date = datetime.datetime.today().date()
+            time_diff = int(average_life_span) - int(home_bot_question_model.appliance_age)
+            if time_diff <= 0:
+                forecasted_replacement_date = current_date
+            else:
+                years = time_diff * 52
+                forecasted_replacement_date = current_date + datetime.timedelta(weeks=years)
+            prompt_data = {'brand': brand,
+                           'appliance_model': appliance_model,
+                           'average_life_span': average_life_span,
+                           'forecasted_replacement_date': forecasted_replacement_date}
             logging.info(END_OF_METHOD)
-            return answer, average_life_span
+            return prompt_data, average_life_span
         except Exception as e:
             logging.error('An issue occurred generating a response to the question',
                           exc_info=True,
@@ -63,23 +73,15 @@ class HomeBotAIService:
             return "Sorry, I'm having trouble finding an answer to your question. Contact support because I'm an idiot!"
 
     @staticmethod
-    def format_question_response(answer, appliance_age, average_life_span):
+    def format_question_response(answer, prompt_data):
         """
         Formats the response from the route
         :param answer: The answer to the query sent by the user
-        :param appliance_age: The age of the appliance
-        :param average_life_span: The average lifespan of the make and model
+        :param prompt_data:
         :return: python dict
         """
         logging.info(START_OF_METHOD)
-        current_date = datetime.datetime.today().date()
-        time_diff = int(average_life_span) - int(appliance_age)
-        if time_diff <= 0:
-            forecasted_replacement_date = current_date
-        else:
-            years = time_diff * 52
-            forecasted_replacement_date = current_date + datetime.timedelta(weeks=years)
         response = {'answer': answer,
-                    'forecasted_replacement_date': datetime.datetime.strftime(forecasted_replacement_date, '%Y-%m-%d')}
+                    'forecasted_replacement_date': prompt_data['forecasted_replacement_date']}
         logging.info(END_OF_METHOD)
         return response
