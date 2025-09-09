@@ -19,12 +19,15 @@ home_bot_routes_blueprint = Blueprint('home_bot_routes_blueprint', __name__)
 @inject
 def ask_home_bot_appliance_lifecycle_query(ctx,
                                            home_bot_ai_service=
-                                           Provide[Container.home_bot_ai_service]):
+                                           Provide[Container.home_bot_ai_service],
+                                           home_bot_llm_rag_service=
+                                           Provide[Container.home_bot_rag_llm_service]):
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     logging.info(START_OF_METHOD)
     ask_home_bot_request = AskHomeBotLifeCycleRequest(request.get_json())
-    answer, average_life_span = home_bot_ai_service.generate_lifecycle_query_answer(ask_home_bot_request)
-    response = home_bot_ai_service.format_question_response(answer, ask_home_bot_request.appliance_age,
-                                                            average_life_span)
+    prompt_data, average_life_span = home_bot_ai_service.generate_lifecycle_query_answer(ask_home_bot_request)
+    answer = home_bot_llm_rag_service.perform_rag_against_sagemaker_llm(ask_home_bot_request.question, prompt_data,
+                                                                        ask_home_bot_request.appliance_age)
+    response = home_bot_ai_service.format_question_response(answer, prompt_data)
     logging.info(END_OF_METHOD)
     return jsonify(response)

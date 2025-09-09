@@ -26,6 +26,8 @@ from backend.payment.service.stripe_payment_subscription_deletion_service import
     StripePaymentSubscriptionDeletionService)
 from backend.payment.service.delete_payment_status_service import DeletePaymentStatusService
 from backend.db.service.forecasted_replacement_date_update_service import ForecastedReplacementDateUpdateService
+from backend.home_bot_model.service.home_bot_llm_rag_service import HomeBotLLMRAGService
+from backend.home_bot_model.client.sagemaker_client import SagemakerClient
 
 
 class Container(containers.DeclarativeContainer):
@@ -97,6 +99,11 @@ class Container(containers.DeclarativeContainer):
                                     config.aws.secret_access_key,
                                     config.aws.region_name)
 
+    sagemaker_client = providers.Singleton(SagemakerClient,
+                                           config.aws.access_key_id,
+                                           config.aws.secret_access_key,
+                                           config.aws.region_name)
+
     property_image_retrieval_service = providers.Singleton(PropertyImageRetrievalService,
                                                            home_pulse_db_connection_pool,
                                                            s3_client,
@@ -129,3 +136,8 @@ class Container(containers.DeclarativeContainer):
 
     forecasted_replacement_date_update_service = providers.Singleton(ForecastedReplacementDateUpdateService,
                                                                      home_pulse_db_connection_pool)
+
+    home_bot_rag_llm_service = providers.Singleton(HomeBotLLMRAGService,
+                                                   sagemaker_client,
+                                                   config.home_bot.llm_endpoint,
+                                                   config.home_bot.prompt_string)

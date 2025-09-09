@@ -29,3 +29,5 @@ home_bot:
   index_file_path: ./backend/home_bot_model/index/appliances.index
   metadata_file_path: ./backend/home_bot_model/index/metadata.pkl
   neighbors_threshold: 3
+  prompt_string: You are a friendly chatbot assistant for a property management software. Your job is to help property managers and landlords answer questions in a conversational, friendly tone. Always base your answers on the context provided.
+  llm_endpoint: homebot-llm-v1
