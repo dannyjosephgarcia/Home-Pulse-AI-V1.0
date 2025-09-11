@@ -56,10 +56,10 @@ class ApplianceInformationUpdateService:
     @staticmethod
     def construct_execute_many_data_object(property_id, appliance_updates):
         """
-        Creates the
-        :param property_id:
-        :param appliance_updates:
-        :return:
+        Creates the list of data being requested to be updated
+        :param property_id: The internal id of a property in our system
+        :param appliance_updates: The request appliance updates
+        :return: python list
         """
         logging.info(START_OF_METHOD)
         items = []
