@@ -28,6 +28,7 @@ from backend.payment.service.delete_payment_status_service import DeletePaymentS
 from backend.db.service.forecasted_replacement_date_update_service import ForecastedReplacementDateUpdateService
 from backend.home_bot_model.service.home_bot_llm_rag_service import HomeBotLLMRAGService
 from backend.home_bot_model.client.sagemaker_client import SagemakerClient
+from backend.db.service.appliance_information_update_service import ApplianceInformationUpdateService
 
 
 class Container(containers.DeclarativeContainer):
@@ -141,3 +142,6 @@ class Container(containers.DeclarativeContainer):
                                                    sagemaker_client,
                                                    config.home_bot.llm_endpoint,
                                                    config.home_bot.prompt_string)
+
+    appliance_information_update_service = providers.Singleton(ApplianceInformationUpdateService,
+                                                               home_pulse_db_connection_pool)
