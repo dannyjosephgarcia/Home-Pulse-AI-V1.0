@@ -29,6 +29,7 @@ from backend.db.service.forecasted_replacement_date_update_service import Foreca
 from backend.home_bot_model.service.home_bot_llm_rag_service import HomeBotLLMRAGService
 from backend.home_bot_model.client.sagemaker_client import SagemakerClient
 from backend.db.service.appliance_information_update_service import ApplianceInformationUpdateService
+from backend.db.service.structure_information_update_service import StructureInformationUpdateService
 
 
 class Container(containers.DeclarativeContainer):
@@ -144,4 +145,7 @@ class Container(containers.DeclarativeContainer):
                                                    config.home_bot.prompt_string)
 
     appliance_information_update_service = providers.Singleton(ApplianceInformationUpdateService,
+                                                               home_pulse_db_connection_pool)
+
+    structure_information_update_service = providers.Singleton(StructureInformationUpdateService,
                                                                home_pulse_db_connection_pool)

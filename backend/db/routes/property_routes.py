@@ -12,6 +12,7 @@ from backend.db.model.tenant_creation_request import TenantCreationRequest
 from backend.db.model.property_image_insertion_request import PropertyImageInsertionRequest
 from backend.db.model.update_forecasted_date_request import UpdateForecastedDateRequest
 from backend.db.model.update_appliance_information_request import UpdateApplianceInformationRequest
+from backend.db.model.update_structure_information_request import UpdateStructureInformationRequest
 
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
@@ -158,11 +159,15 @@ def update_appliance_information_for_property(ctx,
 @token_required
 @inject
 def update_structure_information_for_property(ctx,
-                                              property_id,):
+                                              property_id,
+                                              structure_information_update_service=
+                                              Provide[Container.structure_information_update_service]):
     logging.info(START_OF_METHOD)
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    update_structure_information_request = UpdateStructureInformationRequest(property_id, request.get_json())
+    response = structure_information_update_service.update_structure_information(update_structure_information_request)
     logging.info(END_OF_METHOD)
-    return jsonify({})
+    return jsonify(response)
 
 
 @property_routes_blueprint.route('/v1/properties/<property_id>/tenants/<tenant_id>', methods=['PUT'])
