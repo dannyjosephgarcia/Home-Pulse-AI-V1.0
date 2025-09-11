@@ -11,6 +11,7 @@ from backend.db.model.update_tenant_information_request import UpdateTenantInfor
 from backend.db.model.tenant_creation_request import TenantCreationRequest
 from backend.db.model.property_image_insertion_request import PropertyImageInsertionRequest
 from backend.db.model.update_forecasted_date_request import UpdateForecastedDateRequest
+from backend.db.model.update_appliance_information_request import UpdateApplianceInformationRequest
 
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
@@ -132,6 +133,36 @@ def update_forecasted_replacement_date_from_model(ctx,
         update_forecasted_date_request.forecasted_replacement_date)
     logging.info(END_OF_METHOD)
     return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/appliances', methods=['PUT'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def update_appliance_information_for_property(ctx,
+                                              property_id,
+                                              appliance_information_update_service=
+                                              Provide[Container.appliance_information_update_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    update_appliance_information_request = UpdateApplianceInformationRequest(property_id, request.get_json())
+    response = appliance_information_update_service.update_appliance_information(update_appliance_information_request)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/structures', methods=['PUT'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def update_structure_information_for_property(ctx,
+                                              property_id,):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    logging.info(END_OF_METHOD)
+    return jsonify({})
 
 
 @property_routes_blueprint.route('/v1/properties/<property_id>/tenants/<tenant_id>', methods=['PUT'])

@@ -85,3 +85,7 @@ FROM home_pulse_ai.home_bot_training_information;"""
 
 UPDATE_FORECASTED_REPLACEMENT_DATE = """UPDATE home_pulse_ai.appliances 
 SET forecasted_replacement_date=%s WHERE property_id=%s AND appliance_type=%s;"""
+
+UPDATE_APPLIANCE_INFORMATION_BULK = """UPDATE home_pulse_ai.appliances 
+SET age_in_years=%s, estimated_replacement_cost=%s, forecasted_replacement_date=%s 
+WHERE property_id=%s AND appliance_type=%s;"""
