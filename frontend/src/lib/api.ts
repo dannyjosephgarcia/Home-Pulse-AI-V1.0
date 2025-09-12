@@ -1,6 +1,6 @@
-// const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+const API_BASE_URL = 'https://home-pulse-api.onrender.com';
 
-const API_BASE_URL = 'http://localhost:5000';
+// const API_BASE_URL = 'http://localhost:5000';
 
 
 // Token management
@@ -203,6 +203,21 @@ class ApiClient {
     });
   }
 
+  // Appliances update endpoints
+  async updatePropertyAppliances(propertyId: number, applianceUpdates: any[]): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/appliances`, {
+      method: 'PUT',
+      body: JSON.stringify({ applianceUpdates }),
+    });
+  }
+
+  // Structures update endpoints
+  async updatePropertyStructures(propertyId: number, structureUpdates: any[]): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/structures`, {
+      method: 'PUT',
+      body: JSON.stringify({ structureUpdates: structureUpdates }),
+    });
+  }
 
 }
 
