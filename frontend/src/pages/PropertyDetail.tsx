@@ -5,8 +5,10 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload } from 'lucide-react';
+import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload, Edit, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { HomeBot } from '../components/HomeBot';
 import 'leaflet/dist/leaflet.css';
@@ -62,6 +64,12 @@ const PropertyDetail = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [expandedAppliances, setExpandedAppliances] = useState<Set<number>>(new Set());
+  const [expandedStructures, setExpandedStructures] = useState<Set<number>>(new Set());
+  const [editingAppliances, setEditingAppliances] = useState<{ [key: number]: Appliance }>({});
+  const [editingStructures, setEditingStructures] = useState<{ [key: number]: Structure }>({});
+  const [isUpdatingAppliances, setIsUpdatingAppliances] = useState(false);
+  const [isUpdatingStructures, setIsUpdatingStructures] = useState(false);
 
   // Fix for default marker icons in react-leaflet
   delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -226,6 +234,161 @@ const PropertyDetail = () => {
     }
   };
 
+  const toggleApplianceExpansion = (applianceId: number) => {
+    const newExpanded = new Set(expandedAppliances);
+    if (newExpanded.has(applianceId)) {
+      newExpanded.delete(applianceId);
+      // Clear editing state when collapsing
+      const newEditing = { ...editingAppliances };
+      delete newEditing[applianceId];
+      setEditingAppliances(newEditing);
+    } else {
+      newExpanded.add(applianceId);
+    }
+    setExpandedAppliances(newExpanded);
+  };
+
+  const toggleStructureExpansion = (structureId: number) => {
+    const newExpanded = new Set(expandedStructures);
+    if (newExpanded.has(structureId)) {
+      newExpanded.delete(structureId);
+      // Clear editing state when collapsing
+      const newEditing = { ...editingStructures };
+      delete newEditing[structureId];
+      setEditingStructures(newEditing);
+    } else {
+      newExpanded.add(structureId);
+    }
+    setExpandedStructures(newExpanded);
+  };
+
+  const startEditingAppliance = (appliance: Appliance) => {
+    setEditingAppliances({
+      ...editingAppliances,
+      [appliance.id]: { ...appliance }
+    });
+  };
+
+  const startEditingStructure = (structure: Structure) => {
+    setEditingStructures({
+      ...editingStructures,
+      [structure.id]: { ...structure }
+    });
+  };
+
+  const cancelEditingAppliance = (applianceId: number) => {
+    const newEditing = { ...editingAppliances };
+    delete newEditing[applianceId];
+    setEditingAppliances(newEditing);
+  };
+
+  const cancelEditingStructure = (structureId: number) => {
+    const newEditing = { ...editingStructures };
+    delete newEditing[structureId];
+    setEditingStructures(newEditing);
+  };
+
+  const updateApplianceField = (applianceId: number, field: keyof Appliance, value: any) => {
+    if (editingAppliances[applianceId]) {
+      setEditingAppliances({
+        ...editingAppliances,
+        [applianceId]: {
+          ...editingAppliances[applianceId],
+          [field]: value
+        }
+      });
+    }
+  };
+
+  const updateStructureField = (structureId: number, field: keyof Structure, value: any) => {
+    if (editingStructures[structureId]) {
+      setEditingStructures({
+        ...editingStructures,
+        [structureId]: {
+          ...editingStructures[structureId],
+          [field]: value
+        }
+      });
+    }
+  };
+
+  const saveAppliances = async () => {
+    if (!propertyId || Object.keys(editingAppliances).length === 0) return;
+
+    setIsUpdatingAppliances(true);
+    try {
+      const updates = Object.values(editingAppliances).map(appliance => ({
+        appliance_type: appliance.appliance_type,
+        age_in_years: Number(appliance.age_in_years),
+        estimated_replacement_cost: Number(appliance.estimated_replacement_cost),
+        forecasted_replacement_date: appliance.forecasted_replacement_date
+      }));
+
+      const { error } = await apiClient.updatePropertyAppliances(parseInt(propertyId), updates);
+
+      if (error) {
+        console.error('Error updating appliances:', error);
+        toast.error('Failed to update appliances');
+        return;
+      }
+
+      // Update the local state with the new values
+      const newAppliances = appliances.map(appliance => {
+        const edited = editingAppliances[appliance.id];
+        return edited ? edited : appliance;
+      });
+      setAppliances(newAppliances);
+
+      // Clear editing state
+      setEditingAppliances({});
+      toast.success('Appliances updated successfully');
+    } catch (error) {
+      console.error('Error updating appliances:', error);
+      toast.error('Network error while updating appliances');
+    } finally {
+      setIsUpdatingAppliances(false);
+    }
+  };
+
+  const saveStructures = async () => {
+    if (!propertyId || Object.keys(editingStructures).length === 0) return;
+
+    setIsUpdatingStructures(true);
+    try {
+      const updates = Object.values(editingStructures).map(structure => ({
+        structure_type: structure.structure_type,
+        age_in_years: Number(structure.age_in_years),
+        estimated_replacement_cost: Number(structure.estimated_replacement_cost),
+        forecasted_replacement_date: structure.forecasted_replacement_date
+      }));
+
+      const { error } = await apiClient.updatePropertyStructures(parseInt(propertyId), updates);
+
+      if (error) {
+        console.error('Error updating structures:', error);
+        toast.error('Failed to update structures');
+        return;
+      }
+
+      // Update the local state with the new values
+      const newStructures = structures.map(structure => {
+        const edited = editingStructures[structure.id];
+        return edited ? edited : structure;
+      });
+      setStructures(newStructures);
+
+      // Clear editing state
+      setEditingStructures({});
+      toast.success('Structures updated successfully');
+    } catch (error) {
+      console.error('Error updating structures:', error);
+      toast.error('Network error while updating structures');
+    } finally {
+      setIsUpdatingStructures(false);
+    }
+  };
+
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-primary-dark">
@@ -307,9 +470,22 @@ const PropertyDetail = () => {
             {/* Appliances */}
             <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Wrench className="h-5 w-5" />
-                  <span>Appliances ({appliances.length})</span>
+                <CardTitle className="text-white flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Wrench className="h-5 w-5" />
+                    <span>Appliances ({appliances.length})</span>
+                  </div>
+                  {Object.keys(editingAppliances).length > 0 && (
+                    <Button
+                      onClick={saveAppliances}
+                      disabled={isUpdatingAppliances}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {isUpdatingAppliances ? 'Saving...' : 'Apply Changes'}
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -317,30 +493,124 @@ const PropertyDetail = () => {
                   <p className="text-white/70 text-center py-4">No appliances recorded</p>
                 ) : (
                   <div className="space-y-3">
-                    {appliances.map((appliance) => (
-                      <div key={appliance.id} className="bg-white/5 rounded-lg p-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="text-white font-medium capitalize">{appliance.appliance_type}</h4>
-                          <span className="text-white/70 text-sm">{appliance.age_in_years} years old</span>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-white/60 text-sm">
-                              Estimated replacement cost:{' '}
-                              {appliance.estimated_replacement_cost != null
-                                ? `$${appliance.estimated_replacement_cost.toLocaleString()}`
-                                : 'N/A'}
-                            </p>
-                          {appliance.forecasted_replacement_date && (
-                            <p className="text-white/60 text-sm">
-                              Forecasted replacement:{' '}
-                              {appliance.forecasted_replacement_date === 'TBD'
-                                ? 'TBD'
-                                : new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
-                            </p>
+                    {appliances.map((appliance) => {
+                      const isExpanded = expandedAppliances.has(appliance.id);
+                      const isEditing = editingAppliances[appliance.id];
+                      const currentData = isEditing || appliance;
+                      const rawDate = currentData.forecasted_replacement_date;
+                      let formattedDate = '';
+
+                      if (rawDate) {
+                          const d = new Date(rawDate);
+                          if (!isNaN(d.getTime())) {
+                            formattedDate = d.toISOString().split('T')[0];
+                          }
+                        }
+
+                      return (
+                        <div key={appliance.id} className="bg-white/5 rounded-lg">
+                          <div
+                            className="p-3 cursor-pointer hover:bg-white/10 transition-colors"
+                            onClick={() => toggleApplianceExpansion(appliance.id)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center space-x-2">
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4 text-white/70" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-white/70" />
+                                )}
+                                <h4 className="text-white font-medium capitalize">{appliance.appliance_type}</h4>
+                              </div>
+                              <span className="text-white/70 text-sm">{appliance.age_in_years} years old</span>
+                            </div>
+                            <div className="ml-6 space-y-1">
+                              {appliance.estimated_replacement_cost && (
+                                <p className="text-white/60 text-sm">
+                                  Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
+                                </p>
+                              )}
+                              {appliance.forecasted_replacement_date && (
+                                <p className="text-white/60 text-sm">
+                                  Forecasted replacement: {new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="px-3 pb-3 ml-6 space-y-3 border-t border-white/10 pt-3">
+                              {!isEditing ? (
+                                <Button
+                                  onClick={() => startEditingAppliance(appliance)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Update
+                                </Button>
+                              ) : (
+                                <div className="space-y-3">
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Type</Label>
+                                    <Input
+                                      value={currentData.appliance_type}
+                                      onChange={(e) => updateApplianceField(appliance.id, 'appliance_type', e.target.value)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Age (years)</Label>
+                                    <Input
+                                      type="number"
+                                      value={currentData.age_in_years}
+                                      onChange={(e) => updateApplianceField(appliance.id, 'age_in_years', parseInt(e.target.value) || 0)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Estimated Replacement Cost</Label>
+                                    <Input
+                                      type="number"
+                                      value={currentData.estimated_replacement_cost || ''}
+                                      onChange={(e) => updateApplianceField(appliance.id, 'estimated_replacement_cost', parseFloat(e.target.value) || 0)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Forecasted Replacement Date</Label>
+                                    <Input
+                                      type="date"
+                                      value={formattedDate}
+                                      onChange={(e) =>
+                                        updateApplianceField(
+                                          appliance.id,
+                                          'forecasted_replacement_date',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      onClick={() => cancelEditingAppliance(appliance.id)}
+                                      size="sm"
+                                      variant="outline"
+                                      className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                                    >
+                                      <X className="h-4 w-4 mr-2" />
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -349,9 +619,22 @@ const PropertyDetail = () => {
             {/* Structures */}
             <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Building className="h-5 w-5" />
-                  <span>Structures ({structures.length})</span>
+                <CardTitle className="text-white flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Building className="h-5 w-5" />
+                    <span>Structures ({structures.length})</span>
+                  </div>
+                  {Object.keys(editingStructures).length > 0 && (
+                    <Button
+                      onClick={saveStructures}
+                      disabled={isUpdatingStructures}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {isUpdatingStructures ? 'Saving...' : 'Apply Changes'}
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -359,30 +642,130 @@ const PropertyDetail = () => {
                   <p className="text-white/70 text-center py-4">No structures recorded</p>
                 ) : (
                   <div className="space-y-3">
-                    {structures.map((structure) => (
-                      <div key={structure.id} className="bg-white/5 rounded-lg p-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="text-white font-medium capitalize">{structure.structure_type}</h4>
-                          <span className="text-white/70 text-sm">{structure.age_in_years} years old</span>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-white/60 text-sm">
-                              Estimated replacement cost:{' '}
-                              {structure.estimated_replacement_cost != null
-                                ? `$${structure.estimated_replacement_cost.toLocaleString()}`
-                                : 'N/A'}
-                            </p>
-                          {structure.forecasted_replacement_date && (
-                            <p className="text-white/60 text-sm">
-                              Forecasted replacement:{' '}
-                              {structure.forecasted_replacement_date === 'TBD'
-                                ? 'TBD'
-                                : new Date(structure.forecasted_replacement_date).toLocaleDateString()}
-                            </p>
+                    {structures.map((structure) => {
+                      const isExpanded = expandedStructures.has(structure.id);
+                      const isEditing = editingStructures[structure.id];
+                      const currentData = isEditing || structure;
+                      const rawDate = currentData.forecasted_replacement_date;
+                      const typeDisplayMap: Record<string, string> = {
+                          ac_unit: 'Air Conditioner',
+                          water_heater: 'Water Heater',
+                        };
+                      let formattedDate = '';
+
+                      if (rawDate) {
+                          const d = new Date(rawDate);
+                          if (!isNaN(d.getTime())) {
+                            formattedDate = d.toISOString().split('T')[0];
+                          }
+                        }
+
+                      return (
+                        <div key={structure.id} className="bg-white/5 rounded-lg">
+                          <div
+                            className="p-3 cursor-pointer hover:bg-white/10 transition-colors"
+                            onClick={() => toggleStructureExpansion(structure.id)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center space-x-2">
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4 text-white/70" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-white/70" />
+                                )}
+                                <h4 className="text-white font-medium capitalize">
+                                  {typeDisplayMap[structure.structure_type] ?? structure.structure_type}
+                                </h4>
+                              </div>
+                              <span className="text-white/70 text-sm">{structure.age_in_years} years old</span>
+                            </div>
+                            <div className="ml-6 space-y-1">
+                              {structure.estimated_replacement_cost && (
+                                <p className="text-white/60 text-sm">
+                                  Estimated replacement: ${structure.estimated_replacement_cost.toLocaleString()}
+                                </p>
+                              )}
+                              {structure.forecasted_replacement_date && (
+                                <p className="text-white/60 text-sm">
+                                  Forecasted replacement: {new Date(structure.forecasted_replacement_date).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="px-3 pb-3 ml-6 space-y-3 border-t border-white/10 pt-3">
+                              {!isEditing ? (
+                                <Button
+                                  onClick={() => startEditingStructure(structure)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Update
+                                </Button>
+                              ) : (
+                                <div className="space-y-3">
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Type</Label>
+                                    <Input
+                                      value={currentData.structure_type}
+                                      onChange={(e) => updateStructureField(structure.id, 'structure_type', e.target.value)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Age (years)</Label>
+                                    <Input
+                                      type="number"
+                                      value={currentData.age_in_years}
+                                      onChange={(e) => updateStructureField(structure.id, 'age_in_years', parseInt(e.target.value) || 0)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Estimated Replacement Cost</Label>
+                                    <Input
+                                      type="number"
+                                      value={currentData.estimated_replacement_cost || ''}
+                                      onChange={(e) => updateStructureField(structure.id, 'estimated_replacement_cost', parseFloat(e.target.value) || 0)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Forecasted Replacement Date</Label>
+                                    <Input
+                                      type="date"
+                                      value={formattedDate}
+                                      onChange={(e) =>
+                                        updateStructureField(
+                                          structure.id,
+                                          'forecasted_replacement_date',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      onClick={() => cancelEditingStructure(structure.id)}
+                                      size="sm"
+                                      variant="outline"
+                                      className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                                    >
+                                      <X className="h-4 w-4 mr-2" />
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
