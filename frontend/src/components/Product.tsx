@@ -1,4 +1,3 @@
-import React from 'react';
 import { Brain, Home, Clock, TrendingUp } from 'lucide-react';
 
 const Product = () => {
