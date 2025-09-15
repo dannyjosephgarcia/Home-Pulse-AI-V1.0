@@ -1,22 +1,22 @@
 const Testimonials = () => {
   const testimonials = [
     {
+      name: "Daniel Garcia",
+      role: "Property Manager",
+      content: "Home Pulse AI makes my job as a property manager so much easier. I don't have to wonder when I need to get a project done.",
+      avatar: "./public/profile1.jpg"
+    },
+    {
       name: "Amber Holup",
       role: "Real Estate Investor",
-      content: "Home Pulse AI is the tool every investor needs to keep track of their properties",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
+      content: "The HomeBot AI feature is a game changer. Being able to receive a forecasted replacement date has made scheduling projects so much easier.",
+      avatar: "./public/profile2.jpg"
     },
     {
-      name: "Eric Niewinski",
+      name: "Eric Niewienski",
       role: "Property Manager",
-      content: "The projected cost and date of replacement feature is incredible. Well worth the subscription price.",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-    },
-    {
-      name: "Joseph Hernandez",
-      role: "Real Estate Agent",
-      content: "Without a doubt, Home Pulse AI has helped me close multiple deals with investor clients.",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+      content: "Having a single dashboard to view all my properties is phenomenal! Managing my properties has never been easier.",
+      avatar: "./public/profile3.jpg"
     }
   ];
 
@@ -32,26 +32,29 @@ const Testimonials = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="space-y-16">
           {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-md rounded-xl p-6 hover:bg-white/20 transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="flex items-center mb-4">
-                <img
-                  src={testimonial.avatar}
-                  alt={testimonial.name}
-                  className="w-12 h-12 rounded-full mr-4 object-cover"
-                />
-                <div>
-                  <h3 className="text-white font-semibold">{testimonial.name}</h3>
-                  <p className="text-gray-400 text-sm">{testimonial.role}</p>
+            <div key={index} className="max-w-4xl mx-auto">
+              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                  <div className="lg:col-span-1 text-center lg:text-left">
+                    <div className="inline-block p-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4">
+                      <img
+                        src={testimonial.avatar}
+                        alt={testimonial.name}
+                        className="w-24 h-24 rounded-full object-cover"
+                      />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">{testimonial.name}</h3>
+                    <p className="text-blue-300 font-medium">{testimonial.role}</p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <blockquote className="text-xl md:text-2xl text-gray-200 italic leading-relaxed">
+                      "{testimonial.content}"
+                    </blockquote>
+                  </div>
                 </div>
               </div>
-              <p className="text-gray-300 italic">
-                "{testimonial.content}"
-              </p>
             </div>
           ))}
         </div>

@@ -12,7 +12,7 @@ const Footer = () => {
               <span className="text-xl font-bold text-white">Home Pulse AI</span>
             </div>
             <p className="text-gray-300">
-              Your trusted partner in budgeting for the perfect property. We make investments simple, transparent,
+              Your trusted partner in budgeting for maintenance. We make property management simple, transparent,
               and accessible.
             </p>
           </div>
@@ -32,9 +32,9 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Services</h3>
             <ul className="space-y-2">
-              <li><span className="text-gray-300">Property Search</span></li>
-              <li><span className="text-gray-300">Market Analysis</span></li>
-              <li><span className="text-gray-300">Investment Advice</span></li>
+              <li><span className="text-gray-300">Estimating Replacement Cost</span></li>
+              <li><span className="text-gray-300">Forecasting Replacement Dates</span></li>
+              <li><span className="text-gray-300">Data Storage</span></li>
               <li><span className="text-gray-300">Property Management</span></li>
             </ul>
           </div>
@@ -45,7 +45,7 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-blue-400" />
-                <span className="text-gray-300">homepulseai@gmail.com.com</span>
+                <span className="text-gray-300">homepulseai@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-blue-400" />
@@ -53,7 +53,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-blue-400" />
-                <span className="text-gray-300">123 Real Estate Ave, Suite 100</span>
+                <span className="text-gray-300">15535 Albert Dr, Oak Forest, IL</span>
               </div>
             </div>
           </div>

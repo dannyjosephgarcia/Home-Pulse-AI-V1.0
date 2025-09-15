@@ -37,7 +37,7 @@ const Navigation = () => {
               onClick={() => navigate('/login')}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
             >
-              Get Started
+              Login
             </button>
           </div>
 
