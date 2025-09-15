@@ -5,22 +5,22 @@ const Features = () => {
     {
       icon: <Search className="h-12 w-12 text-blue-400" />,
       title: "Advanced Search",
-      description: "Find properties with our powerful filtering system and detailed search criteria."
+      description: "Find accurate appliance pricing with our estimated replacement cost calculator"
     },
     {
       icon: <MapPin className="h-12 w-12 text-purple-400" />,
       title: "Location Insights",
-      description: "Get detailed neighborhood information, schools, and local amenities data."
+      description: "See all details of your investment property in a single location"
     },
     {
       icon: <TrendingUp className="h-12 w-12 text-blue-400" />,
-      title: "Market Analytics",
-      description: "Access real-time market trends and property value predictions."
+      title: "Cost Efficiency",
+      description: "Perform preventative maintenance on your property to prevent last-minute replacements "
     },
     {
       icon: <Crosshair className="h-12 w-12 text-purple-400" />,
       title: "Accurate Predictions",
-      description: "Optimize your rehabilitation budget using our suit of Machine Learning models."
+      description: "Optimize your rehabilitation budget using our HomeBot AI assistant"
     }
   ];
 
