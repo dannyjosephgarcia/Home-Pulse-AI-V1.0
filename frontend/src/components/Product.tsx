@@ -70,7 +70,7 @@ const Product = () => {
                 </h3>
                 <p className="text-gray-300 text-lg leading-relaxed">
                   Never miss important maintenance again. HomePulseAI creates
-                  personalized schedules and sends timely reminders, helping you
+                  personalized schedules, helping you
                   maintain your home's value and avoid emergency repairs.
                 </p>
               </div>

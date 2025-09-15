@@ -1,22 +1,22 @@
 const Testimonials = () => {
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      role: "First-time Homebuyer",
-      content: "RealEstate Pro made finding my dream home so easy. The search tools are incredible and the team was supportive throughout the entire process.",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
+      name: "Daniel Garcia",
+      role: "Property Manager",
+      content: "Home Pulse AI makes my job as a property manager so much easier. I don't have to wonder when I need to get a project done.",
+      avatar: "./public/profile1.jpg"
     },
     {
-      name: "Michael Chen",
+      name: "Amber Holup",
       role: "Real Estate Investor",
-      content: "The market analytics feature is a game-changer. I've been able to identify profitable investment opportunities that I would have missed otherwise.",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+      content: "The HomeBot AI feature is a game changer. Being able to receive a forecasted replacement date has made scheduling projects so much easier.",
+      avatar: "./public/profile2.jpg"
     },
     {
-      name: "Emily Rodriguez",
-      role: "Property Seller",
-      content: "Sold my house in just 2 weeks! The platform's reach and the professional support made all the difference in getting the best price.",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+      name: "Eric Niewienski",
+      role: "Property Manager",
+      content: "Having a single dashboard to view all my properties is phenomenal! Managing my properties has never been easier.",
+      avatar: "./public/profile3.jpg"
     }
   ];
 

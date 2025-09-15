@@ -41,7 +41,7 @@ const Hero: React.FC<HeroProps> = ({ scrollY }) => {
             onClick={handleStartSearching}
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg"
           >
-            Start Searching
+            Get Started
           </button>
           <button
             onClick={handleLearnMore}
