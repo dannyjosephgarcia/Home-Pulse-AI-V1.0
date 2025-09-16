@@ -227,7 +227,7 @@ const Properties = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await apiClient.csvBulkUpload(selectedFile);
+      const { error } = await apiClient.csvBulkUpload(selectedFile);
 
       if (!error) {
         toast({
