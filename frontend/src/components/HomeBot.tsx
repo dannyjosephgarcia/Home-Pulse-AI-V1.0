@@ -35,7 +35,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
     {
       id: '1',
       type: 'bot',
-      content: "Hello! I'm HomeBot, your AI assistant for home maintenance questions. Select an appliance and ask me anything about its lifecycle, maintenance, or replacement!",
+      content: "Hello! I'm HomePulse, your AI assistant for home maintenance questions. Select an appliance and ask me anything about its lifecycle, maintenance, or replacement!",
       timestamp: new Date(),
     }
   ]);
@@ -83,8 +83,8 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
       );
 
       if (error) {
-        console.error('HomeBot API error:', error);
-        toast.error('Failed to get response from HomeBot');
+        console.error('HomePulse API error:', error);
+        toast.error('Failed to get response from HomePulse');
 
         // Add error message
         const errorMessage: Message = {
@@ -110,8 +110,8 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
 
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
-      console.error('Error sending message to HomeBot:', error);
-      toast.error('Network error while contacting HomeBot');
+      console.error('Error sending message to HomePulse:', error);
+      toast.error('Network error while contacting HomePulse');
 
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -177,7 +177,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
       <CardHeader className="pb-3">
         <CardTitle className="text-white flex items-center space-x-2">
           <MessageCircle className="h-5 w-5" />
-          <span>HomeBot Assistant</span>
+          <span>HomePulse Chat</span>
         </CardTitle>
       </CardHeader>
 

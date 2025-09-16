@@ -1,6 +1,6 @@
-const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+// const API_BASE_URL = 'https://home-pulse-api.onrender.com';
 
-// const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://localhost:5000';
 
 
 // Token management
@@ -217,6 +217,34 @@ class ApiClient {
       method: 'PUT',
       body: JSON.stringify({ structureUpdates: structureUpdates }),
     });
+  }
+
+  // CSV bulk upload endpoint
+  async csvBulkUpload(csvFile: File): Promise<{ data: any | null; error: any }> {
+    try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+
+      if (token && !isTokenExpired(token)) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/v1/properties/csv-bulk-upload`, {
+        method: 'POST',
+        headers,
+        body: csvFile,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { data: null, error: data };
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: { message: 'Network error' } };
+    }
   }
 
 }

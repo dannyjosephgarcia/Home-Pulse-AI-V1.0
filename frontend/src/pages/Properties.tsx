@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Plus, Trash2, ArrowLeft, Loader2, Calendar } from 'lucide-react';
+import { Home, Plus, Trash2, ArrowLeft, Loader2, Calendar, Upload, FileText } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { apiClient } from '../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -66,6 +66,9 @@ const Properties = () => {
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadMode, setUploadMode] = useState<'form' | 'csv'>('form');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -183,6 +186,73 @@ const Properties = () => {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select a CSV file (.csv)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (under 2MB)
+    const MAX_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+    if (file.size > MAX_SIZE) {
+      toast({
+        title: "File Too Large",
+        description: "Please select a file smaller than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedFile(file);
+  };
+
+  const handleCsvUpload = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "No File Selected",
+        description: "Please select a CSV file to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await apiClient.csvBulkUpload(selectedFile);
+
+      if (!error) {
+        toast({
+          title: "CSV Upload Successful!",
+          description: "Your properties have been imported successfully.",
+        });
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "CSV Upload Failed",
+          description: "There was an issue with your CSV file upload. Please check the template and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Network Error",
+        description: "Unable to connect to the server. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
       {/* Background Elements */}
@@ -215,7 +285,109 @@ const Properties = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Upload Mode Toggle */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-1 border border-white/20">
+              <button
+                onClick={() => setUploadMode('form')}
+                className={`px-6 py-2 rounded-lg transition-all duration-200 ${
+                  uploadMode === 'form'
+                    ? 'bg-white/20 text-white shadow-lg'
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                Manual Entry
+              </button>
+              <button
+                onClick={() => setUploadMode('csv')}
+                className={`px-6 py-2 rounded-lg transition-all duration-200 ${
+                  uploadMode === 'csv'
+                    ? 'bg-white/20 text-white shadow-lg'
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                CSV Upload
+              </button>
+            </div>
+          </div>
+
+          {uploadMode === 'csv' ? (
+            /* CSV Upload Section */
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+              <div className="text-center">
+                <Upload className="mx-auto text-white/80 mb-4" size={48} />
+                <h2 className="text-2xl font-semibold text-white mb-2">
+                  Upload CSV File
+                </h2>
+                <p className="text-white/70 mb-6">
+                  Upload a CSV file with your property and appliance information
+                </p>
+
+                <div className="space-y-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-6 py-3 rounded-xl border border-white/30 hover:bg-white/20 transition-all duration-200"
+                    disabled={isLoading}
+                  >
+                    <FileText size={20} />
+                    Choose CSV File
+                  </button>
+
+                  {selectedFile && (
+                    <div className="bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10">
+                      <div className="flex items-center justify-center gap-2 text-white/90">
+                        <FileText size={16} />
+                        <span className="text-sm">{selectedFile.name}</span>
+                        <span className="text-xs text-white/60">
+                          ({(selectedFile.size / 1024).toFixed(1)} KB)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={handleCsvUpload}
+                      disabled={isLoading || !selectedFile}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 px-8 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="animate-spin" size={20} />
+                          Uploading CSV...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={20} />
+                          Upload CSV File
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="text-xs text-white/60 text-center max-w-md mx-auto">
+                    <p>File requirements:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>CSV format (.csv)</li>
+                      <li>Maximum file size: 2MB</li>
+                      <li>Follow the provided template structure</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-8">
             {properties.map((property, propertyIndex) => (
               <div key={propertyIndex} className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
                 {/* Property Header */}
@@ -412,6 +584,7 @@ const Properties = () => {
               </button>
             </div>
           </form>
+          )}
         </div>
       </div>
     </div>
