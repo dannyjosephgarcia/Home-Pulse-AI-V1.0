@@ -4,19 +4,19 @@ const Testimonials = () => {
       name: "Daniel Garcia",
       role: "Property Manager",
       content: "Home Pulse AI makes my job as a property manager so much easier. I don't have to wonder when I need to get a project done.",
-      avatar: "./public/profile1.jpg"
+      avatar: "./profile1.jpg"
     },
     {
       name: "Amber Holup",
       role: "Real Estate Investor",
       content: "The HomeBot AI feature is a game changer. Being able to receive a forecasted replacement date has made scheduling projects so much easier.",
-      avatar: "./public/profile2.jpg"
+      avatar: "./profile3.jpg"
     },
     {
       name: "Eric Niewienski",
       role: "Property Manager",
       content: "Having a single dashboard to view all my properties is phenomenal! Managing my properties has never been easier.",
-      avatar: "./public/profile3.jpg"
+      avatar: "./profile2.jpg"
     }
   ];
 
