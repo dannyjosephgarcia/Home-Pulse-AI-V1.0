@@ -7,10 +7,11 @@ from flask import jsonify, request, Blueprint
 from dependency_injector.wiring import inject, Provide
 from common.decorators.token_required import token_required
 from common.logging.log_utils import START_OF_METHOD, END_OF_METHOD
-from backend.db.model.update_tenant_information_request import UpdateTenantInformationRequest
 from backend.db.model.tenant_creation_request import TenantCreationRequest
-from backend.db.model.property_image_insertion_request import PropertyImageInsertionRequest
+from backend.db.model.property_creation_bulk_request import PropertyCreationBulkRequest
 from backend.db.model.update_forecasted_date_request import UpdateForecastedDateRequest
+from backend.db.model.property_image_insertion_request import PropertyImageInsertionRequest
+from backend.db.model.update_tenant_information_request import UpdateTenantInformationRequest
 from backend.db.model.update_appliance_information_request import UpdateApplianceInformationRequest
 from backend.db.model.update_structure_information_request import UpdateStructureInformationRequest
 
@@ -32,6 +33,23 @@ def insert_property_information_into_table(ctx,
     property_creation_requests = property_creation_insertion_service.construct_property_creation_requests(user_id,
                                                                                                           request_json)
     response = property_creation_insertion_service.insert_properties_into_db(user_id, property_creation_requests)
+    return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/csv-bulk-upload', methods=['POST'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def bulk_upload_property_information_from_csv(ctx,
+                                              property_creation_bulk_insertion_service=
+                                              Provide[Container.property_creation_bulk_insertion_service]):
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    logging.info(START_OF_METHOD)
+    property_creation_bulk_request = PropertyCreationBulkRequest(request.files)
+    response = property_creation_bulk_insertion_service.bulk_upload_properties_into_db(property_creation_bulk_request)
+    response = {'insertRecordStatus': 200}
+    logging.info(END_OF_METHOD)
     return jsonify(response)
 
 
