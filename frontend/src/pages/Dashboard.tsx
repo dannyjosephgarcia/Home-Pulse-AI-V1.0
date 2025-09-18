@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus, PhoneCall } from 'lucide-react';
+import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus, PhoneCall, Wrench, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '../components/UserProfile';
+import { HomeBot } from '../components/HomeBot';
 
 interface Property {
   id: number;
@@ -40,13 +41,37 @@ interface Address {
   address: string;
 }
 
+interface Appliance {
+  id: number;
+  appliance_type: string;
+  age_in_years: number;
+  estimated_replacement_cost: number;
+  property_id: number;
+  forecasted_replacement_date: string;
+}
+
+
+interface ManagementItem {
+  id: number;
+  type: 'appliance' | 'structure';
+  name: string;
+  property_id: number;
+  property_address: string;
+  forecasted_replacement_date: string;
+  status: 'coming_due' | 'overdue';
+  days_difference: number;
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [tenants, setTenants] = useState<{ [propertyId: number]: Tenant[] }>({});
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [appliances] = useState<{ [propertyId: number]: Appliance[] }>({});
+  const [managementItems, setManagementItems] = useState<ManagementItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTenants, setIsLoadingTenants] = useState(false);
+  const [isLoadingManagement, setIsLoadingManagement] = useState(false);
   const [activeTab, setActiveTab] = useState('properties');
   const [editingTenant, setEditingTenant] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<Tenant>>({});
@@ -62,6 +87,9 @@ const Dashboard = () => {
     if (activeTab === 'tenants' && properties.length > 0) {
       fetchAllTenants();
       fetchAddresses();
+    }
+    if (activeTab === 'management' && properties.length > 0) {
+      fetchManagementData();
     }
   }, [activeTab, properties]);
 
@@ -215,6 +243,35 @@ const Dashboard = () => {
     setNewTenantForm({});
   };
 
+  const fetchManagementData = async () => {
+    setIsLoadingManagement(true);
+
+    try {
+      const { data, error } = await apiClient.getPropertiesNeedsAttention();
+      if (error) {
+        console.error('Failed to fetch properties needs attention:', error);
+        toast.error('Failed to load management information');
+        setManagementItems([]);
+      } else {
+        setManagementItems(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching management data:', error);
+      toast.error('Failed to load management information');
+      setManagementItems([]);
+    } finally {
+      setIsLoadingManagement(false);
+    }
+  };
+
+
+  const handleApplianceUpdate = () => {
+    // Refresh management data when appliances are updated
+    if (activeTab === 'management') {
+      fetchManagementData();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-primary-dark">
@@ -250,6 +307,12 @@ const Dashboard = () => {
                   >
                     Tenants
                   </TabsTrigger>
+                  <TabsTrigger
+                    value="management"
+                    className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/70 text-sm"
+                  >
+                    Management
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -273,6 +336,7 @@ const Dashboard = () => {
         <div className="w-full">
           {activeTab === 'properties' && renderPropertyTab()}
           {activeTab === 'tenants' && renderTenantTab()}
+          {activeTab === 'management' && renderManagementTab()}
         </div>
       </main>
     </div>
@@ -290,7 +354,7 @@ const Dashboard = () => {
             <p className="text-white/70 mb-4">You haven't added any properties yet.</p>
             <Button
               onClick={() => navigate('/properties')}
-              className="bg-purple-800 text-primary hover:bg-purple/90"
+              className="bg-white text-primary hover:bg-white/90"
             >
               Add Your First Property
             </Button>
@@ -341,7 +405,7 @@ const Dashboard = () => {
           ))}
 
           {/* Add Property Card */}
-          <Card
+           <Card
               className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group border-dashed"
               onClick={() => navigate('/properties')}
             >
@@ -891,6 +955,151 @@ const Dashboard = () => {
             </Card>
           );
         })}
+      </div>
+    );
+  }
+
+  function renderManagementTab() {
+    if (isLoadingManagement) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+        </div>
+      );
+    }
+
+    if (properties.length === 0) {
+      return (
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-16 w-16 text-white/50 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Properties Found</h3>
+            <p className="text-white/70 mb-4">Add properties first to view maintenance management.</p>
+            <Button
+              onClick={() => navigate('/properties')}
+              className="bg-white text-primary hover:bg-white/90"
+            >
+              Add Your First Property
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="flex h-[calc(100vh-200px)] gap-6">
+        {/* Left Panel - Management Items */}
+        <div className="w-2/3 space-y-4 overflow-y-auto">
+          {managementItems.length === 0 ? (
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+              <CardContent className="p-8 text-center">
+                <AlertCircle className="h-16 w-16 text-white/50 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">No Items Need Attention</h3>
+                <p className="text-white/70">All your appliances and structures are in good shape!</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-white mb-2">Items Requiring Attention</h3>
+                <p className="text-white/70">Properties with appliances or structures coming due or overdue for replacement</p>
+              </div>
+
+              {managementItems.map((item) => (
+                <Card
+                  key={`${item.type}-${item.id}`}
+                  className={`backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group ${
+                    item.status === 'overdue'
+                      ? 'bg-red-500/20 border-red-400/40'
+                      : 'bg-yellow-500/20 border-yellow-400/40'
+                  }`}
+                  onClick={() => handlePropertyClick(item.property_id)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4">
+                        <div className={`p-3 rounded-lg ${
+                          item.status === 'overdue'
+                            ? 'bg-red-500/30'
+                            : 'bg-yellow-500/30'
+                        }`}>
+                          {item.type === 'appliance' ? (
+                            <Wrench className="h-6 w-6 text-white" />
+                          ) : (
+                            <Building className="h-6 w-6 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h4 className="text-lg font-semibold text-white">{item.name}</h4>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              item.status === 'overdue'
+                                ? 'bg-red-500/30 text-red-100'
+                                : 'bg-yellow-500/30 text-yellow-100'
+                            }`}>
+                              {item.status === 'overdue' ? 'OVERDUE' : 'COMING DUE'}
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2 text-white/70">
+                              <MapPin className="h-4 w-4" />
+                              <span>{item.property_address}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-white/70">
+                              <Calendar className="h-4 w-4" />
+                              <span>Forecasted: {new Date(item.forecasted_replacement_date).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-2xl font-bold mb-1 ${
+                          item.status === 'overdue' ? 'text-red-300' : 'text-yellow-300'
+                        }`}>
+                          {Math.abs(item.days_difference)}
+                        </div>
+                        <div className="text-sm text-white/70">
+                          {item.status === 'overdue' ? 'days overdue' : 'days remaining'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 text-center">
+                      <span className="text-white/60 group-hover:text-white/80 transition-colors">
+                        Click to view property details →
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel - HomeBot */}
+        <div className="w-1/3">
+          <Card className="bg-white/10 backdrop-blur-md border-white/20 h-full">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center space-x-2">
+                <span>HomePulse AI Assistant</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 h-[calc(100%-80px)]">
+              {/* Get all appliances for HomeBot */}
+              {(() => {
+                const allAppliances: Appliance[] = [];
+                Object.values(appliances).forEach(propertyAppliances => {
+                  allAppliances.push(...propertyAppliances);
+                });
+                return (
+                  <HomeBot
+                    appliances={allAppliances}
+                    onApplianceUpdate={handleApplianceUpdate}
+                  />
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

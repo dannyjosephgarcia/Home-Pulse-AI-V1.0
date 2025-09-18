@@ -250,6 +250,13 @@ class ApiClient {
     }
   }
 
+  // Properties needs attention endpoint
+  async getPropertiesNeedsAttention(): Promise<{ data: any[] | null; error: any }> {
+    return this.request('/v1/properties/needs-attention', {
+      method: 'GET',
+    });
+  }
+
 }
 
 export const apiClient = new ApiClient();
