@@ -222,18 +222,21 @@ class ApiClient {
   // CSV bulk upload endpoint
   async csvBulkUpload(csvFile: File): Promise<{ data: any | null; error: any }> {
     try {
-      const token = getAuthToken();
-      const headers: Record<string, string> = {};
+        const token = getAuthToken();
+        const formData = new FormData();
+        formData.append("file", csvFile);
 
-      if (token && !isTokenExpired(token)) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+        const headers: Record<string, string> = {};
+
+        if (token && !isTokenExpired(token)) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
 
       const response = await fetch(`${API_BASE_URL}/v1/properties/csv-bulk-upload`, {
-        method: 'POST',
-        headers,
-        body: csvFile,
-      });
+          method: 'POST',
+          headers,
+          body: formData,
+        });
 
       const data = await response.json();
 

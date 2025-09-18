@@ -93,3 +93,5 @@ WHERE property_id=%s AND appliance_type=%s;"""
 UPDATE_STRUCTURE_INFORMATION_BULK = """UPDATE home_pulse_ai.structures 
 SET age_in_years=%s, estimated_replacement_cost=%s, forecasted_replacement_date=%s 
 WHERE property_id=%s AND structure_type=%s;"""
+
+INSERT_PROPERTY_INFORMATION_BULK = """"""

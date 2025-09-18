@@ -26,7 +26,10 @@ INVALID_INVITATION = ErrorCode(code="INVALID_INVITATION",
                                status=400)
 INVALID_CUSTOMER = ErrorCode(code='INVALID_CUSTOMER',
                              message='The customer credentials are invalid',
-                             status=100)
+                             status=400)
+INVALID_BULK_CSV_FILE = ErrorCode(code='INVALID_BULK_CSV_FILE',
+                                  message="The .csv file uploaded by the user is invalid. Please try again.",
+                                  status=400)
 DELETION_ISSUE = ErrorCode(code='DELETION_ISSUE',
                            message='The customer subscription could not be canceled',
                            status=500)
