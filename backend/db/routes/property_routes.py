@@ -48,7 +48,6 @@ def bulk_upload_property_information_from_csv(ctx,
     logging.info(START_OF_METHOD)
     property_creation_bulk_request = PropertyCreationBulkRequest(request.files)
     response = property_creation_bulk_insertion_service.bulk_upload_properties_into_db(property_creation_bulk_request)
-    response = {'insertRecordStatus': 200}
     logging.info(END_OF_METHOD)
     return jsonify(response)
 
