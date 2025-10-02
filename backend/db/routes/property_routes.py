@@ -221,6 +221,22 @@ def fetch_address_information_for_properties(ctx,
     return jsonify(response)
 
 
+@property_routes_blueprint.route('/v1/properties/<user_id>/needs-attention', methods=['GET'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def fetch_information_for_urgent_properties(ctx,
+                                            user_id,
+                                            property_needs_attention_retrieval_service=
+                                            Provide[Container.property_needs_attention_retrieval_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    response = property_needs_attention_retrieval_service.fetch_properties_that_need_attention(user_id)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
 @property_routes_blueprint.route('/v1/properties/<property_id>/tenants', methods=['POST'])
 @mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
 @csrf.exempt

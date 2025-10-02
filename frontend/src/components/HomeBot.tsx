@@ -35,7 +35,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
     {
       id: '1',
       type: 'bot',
-      content: "Hello! I'm HomePulse, your AI assistant for home maintenance questions. Select an appliance and ask me anything about its lifecycle, maintenance, or replacement!",
+      content: "Hello! I'm HomeBot, your AI assistant for home maintenance questions. You can select an appliance for specific advice, or just ask me anything about home maintenance!",
       timestamp: new Date(),
     }
   ]);
@@ -52,16 +52,14 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!currentQuestion.trim() || !selectedApplianceId) {
-      toast.error('Please select an appliance and enter a question');
+    if (!currentQuestion.trim()) {
+      toast.error('Please enter a question');
       return;
     }
 
-    const selectedAppliance = appliances.find(a => a.id.toString() === selectedApplianceId);
-    if (!selectedAppliance) {
-      toast.error('Please select a valid appliance');
-      return;
-    }
+    const selectedAppliance = selectedApplianceId
+      ? appliances.find(a => a.id.toString() === selectedApplianceId)
+      : null;
 
     // Add user message
     const userMessage: Message = {
@@ -69,7 +67,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
       type: 'user',
       content: currentQuestion,
       timestamp: new Date(),
-      applianceType: selectedAppliance.appliance_type,
+      applianceType: selectedAppliance?.appliance_type,
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -79,12 +77,12 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
     try {
       const { data, error } = await apiClient.askLifecycleQuestion(
         currentQuestion,
-        selectedAppliance.age_in_years
+        selectedAppliance?.age_in_years || 0
       );
 
       if (error) {
-        console.error('HomePulse API error:', error);
-        toast.error('Failed to get response from HomePulse');
+        console.error('HomeBot API error:', error);
+        toast.error('Failed to get response from HomeBot');
 
         // Add error message
         const errorMessage: Message = {
@@ -104,14 +102,14 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
         content: data?.response || data?.answer || 'I received your question but couldn\'t generate a proper response.',
         timestamp: new Date(),
         forecastedDate: data?.forecasted_replacement_date,
-        showUpdateOption: !!data?.forecasted_replacement_date && !!propertyId,
-        applianceType: selectedAppliance.appliance_type,
+        showUpdateOption: !!data?.forecasted_replacement_date && !!propertyId && !!selectedAppliance,
+        applianceType: selectedAppliance?.appliance_type,
       };
 
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
-      console.error('Error sending message to HomePulse:', error);
-      toast.error('Network error while contacting HomePulse');
+      console.error('Error sending message to HomeBot:', error);
+      toast.error('Network error while contacting HomeBot');
 
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -125,7 +123,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
     }
   };
 
-    const handleUpdateForecastedDate = async (messageId: string, applianceType: string, forecastedDate: string) => {
+  const handleUpdateForecastedDate = async (messageId: string, applianceType: string, forecastedDate: string) => {
     if (!propertyId) {
       toast.error('Property ID not available');
       return;
@@ -177,7 +175,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
       <CardHeader className="pb-3">
         <CardTitle className="text-white flex items-center space-x-2">
           <MessageCircle className="h-5 w-5" />
-          <span>HomePulse Chat</span>
+          <span>HomeBot Assistant</span>
         </CardTitle>
       </CardHeader>
 
@@ -220,7 +218,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
                             onClick={() => handleUpdateForecastedDate(message.id, message.applianceType!, message.forecastedDate!)}
                             className="bg-primary hover:bg-primary/90 text-white text-xs px-3 py-1"
                           >
-                            Select to update replacement date
+                            Update Forecasted Date
                           </Button>
                         </div>
                       )}
@@ -257,7 +255,7 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
           {/* Appliance Selection */}
           <Select value={selectedApplianceId} onValueChange={setSelectedApplianceId}>
             <SelectTrigger className="bg-white/10 border-white/20 text-white">
-              <SelectValue placeholder="Select an appliance..." />
+              <SelectValue placeholder="Select an appliance (optional)..." />
             </SelectTrigger>
             <SelectContent>
               {appliances.map((appliance) => (
@@ -274,13 +272,13 @@ export const HomeBot = ({ appliances, propertyId, onApplianceUpdate }: HomeBotPr
               value={currentQuestion}
               onChange={(e) => setCurrentQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about maintenance, replacement, or lifecycle..."
+              placeholder="Ask about maintenance, replacement, or anything..."
               className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50"
-              disabled={isLoading || !selectedApplianceId}
+              disabled={isLoading}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={!currentQuestion.trim() || !selectedApplianceId || isLoading}
+              disabled={!currentQuestion.trim() || isLoading}
               className="bg-primary hover:bg-primary/90 text-white px-3"
             >
               <Send className="h-4 w-4" />

@@ -1,6 +1,6 @@
-// const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+const API_BASE_URL = 'https://home-pulse-api.onrender.com';
 
-const API_BASE_URL = 'http://localhost:5000';
+// const API_BASE_URL = 'http://localhost:5000';
 
 
 // Token management
@@ -251,12 +251,11 @@ class ApiClient {
   }
 
   // Properties needs attention endpoint
-  async getPropertiesNeedsAttention(): Promise<{ data: any[] | null; error: any }> {
-    return this.request('/v1/properties/needs-attention', {
+  async getPropertiesNeedsAttention(userId: number): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${userId}/needs-attention`, {
       method: 'GET',
     });
   }
-
 }
 
 export const apiClient = new ApiClient();
