@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus, PhoneCall, Wrench, Building } from 'lucide-react';
+import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus, PhoneCall, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '../components/UserProfile';
@@ -53,13 +53,13 @@ interface Appliance {
 
 interface ManagementItem {
   id: number;
-  type: 'appliance' | 'structure';
   name: string;
   property_id: number;
   property_address: string;
   forecasted_replacement_date: string;
   status: 'coming_due' | 'overdue';
   days_difference: number;
+  cost?: number;
 }
 
 const Dashboard = () => {
@@ -244,16 +244,31 @@ const Dashboard = () => {
   };
 
   const fetchManagementData = async () => {
+    if (!user?.user_id) return;
+
     setIsLoadingManagement(true);
 
     try {
-      const { data, error } = await apiClient.getPropertiesNeedsAttention();
+      const { data, error } = await apiClient.getPropertiesNeedsAttention(user.user_id);
       if (error) {
         console.error('Failed to fetch properties needs attention:', error);
         toast.error('Failed to load management information');
         setManagementItems([]);
       } else {
-        setManagementItems(data || []);
+        // Extract managementItems and components from the response
+        const items = data?.managementItems || [];
+        const components = data?.components || [];
+
+        // Map cost from components to managementItems
+        const itemsWithCost = items.map((item: ManagementItem) => {
+          const component = components.find((c: any) => c.id === item.id);
+          return {
+            ...item,
+            cost: component?.cost
+          };
+        });
+
+        setManagementItems(itemsWithCost);
       }
     } catch (error) {
       console.error('Error fetching management data:', error);
@@ -1007,7 +1022,7 @@ const Dashboard = () => {
 
               {managementItems.map((item) => (
                 <Card
-                  key={`${item.type}-${item.id}`}
+                  key={item.id}
                   className={`backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group ${
                     item.status === 'overdue'
                       ? 'bg-red-500/20 border-red-400/40'
@@ -1023,15 +1038,11 @@ const Dashboard = () => {
                             ? 'bg-red-500/30'
                             : 'bg-yellow-500/30'
                         }`}>
-                          {item.type === 'appliance' ? (
-                            <Wrench className="h-6 w-6 text-white" />
-                          ) : (
-                            <Building className="h-6 w-6 text-white" />
-                          )}
+                          <Wrench className="h-6 w-6 text-white" />
                         </div>
-                        <div className="flex-1">
+                          <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <h4 className="text-lg font-semibold text-white">{item.name}</h4>
+                            <h4 className="text-lg font-semibold text-white capitalize">{item.name.replace(/_/g, ' ')}</h4>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               item.status === 'overdue'
                                 ? 'bg-red-500/30 text-red-100'
@@ -1047,8 +1058,14 @@ const Dashboard = () => {
                             </div>
                             <div className="flex items-center space-x-2 text-white/70">
                               <Calendar className="h-4 w-4" />
-                              <span>Forecasted: {new Date(item.forecasted_replacement_date).toLocaleDateString()}</span>
+                              <span>Replacement Date: {new Date(item.forecasted_replacement_date).toLocaleDateString()}</span>
                             </div>
+                            {item.cost && (
+                              <div className="flex items-center space-x-2 text-white/70">
+                                <DollarSign className="h-4 w-4" />
+                                <span>Estimated Cost: ${item.cost.toLocaleString()}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1076,7 +1093,7 @@ const Dashboard = () => {
         </div>
 
         {/* Right Panel - HomeBot */}
-        <div className="w-1/3">
+        <div className="w-2/3">
           <Card className="bg-white/10 backdrop-blur-md border-white/20 h-full">
             <CardHeader>
               <CardTitle className="text-white flex items-center space-x-2">

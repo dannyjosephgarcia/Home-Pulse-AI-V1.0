@@ -31,6 +31,7 @@ from backend.home_bot_model.client.sagemaker_client import SagemakerClient
 from backend.db.service.appliance_information_update_service import ApplianceInformationUpdateService
 from backend.db.service.structure_information_update_service import StructureInformationUpdateService
 from backend.db.service.property_creation_bulk_insertion_service import PropertyCreationBulkInsertionService
+from backend.db.service.property_needs_attention_retrieval_service import PropertyNeedsAttentionRetrievalService
 
 
 class Container(containers.DeclarativeContainer):
@@ -153,3 +154,6 @@ class Container(containers.DeclarativeContainer):
 
     property_creation_bulk_insertion_service = providers.Singleton(PropertyCreationBulkInsertionService,
                                                                    home_pulse_db_connection_pool)
+
+    property_needs_attention_retrieval_service = providers.Singleton(PropertyNeedsAttentionRetrievalService,
+                                                                     home_pulse_db_connection_pool)

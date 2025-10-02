@@ -95,3 +95,33 @@ SET age_in_years=%s, estimated_replacement_cost=%s, forecasted_replacement_date=
 WHERE property_id=%s AND structure_type=%s;"""
 
 INSERT_PROPERTY_INFORMATION_BULK = """"""
+
+SELECT_PROPERTY_INFORMATION_BY_USER_FOR_MANAGEMENT_TAB = """SELECT ap.id, 
+       ap.property_id, 
+       ap.appliance_type AS component_name, 
+       ap.age_in_years, 
+       ap.estimated_replacement_cost, 
+       ap.forecasted_replacement_date, 
+       pr.address
+FROM appliances AS ap
+JOIN properties AS pr 
+  ON ap.property_id = pr.id
+WHERE ap.forecasted_replacement_date <= CURDATE() + INTERVAL 3 MONTH
+  AND ap.property_id IN (SELECT id FROM properties WHERE user_id = %s)
+
+UNION
+
+SELECT sp.id, 
+       sp.property_id, 
+       sp.structure_type AS component_name, 
+       sp.age_in_years, 
+       sp.estimated_replacement_cost, 
+       sp.forecasted_replacement_date, 
+       pr.address
+FROM structures AS sp
+JOIN properties AS pr 
+  ON sp.property_id = pr.id
+WHERE sp.forecasted_replacement_date <= CURDATE() + INTERVAL 3 MONTH
+  AND sp.property_id IN (SELECT id FROM properties WHERE user_id = %s)
+
+ORDER BY property_id;"""
