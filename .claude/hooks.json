@@ -1,0 +1,9 @@
+{
+  "PostFileSave": [
+    {
+      "agent": "jason-bourne-backend",
+      "files": ["./backend/**/*.py"],
+      "description": "Run unit-test-updater whenever a Python file in backend/ changes"
+    }
+  ]
+}
