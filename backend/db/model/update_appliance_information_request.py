@@ -10,8 +10,8 @@ class UpdateApplianceInformationRequest:
         self.property_id = property_id
         self.appliance_updates = request['applianceUpdates']
 
-    @staticmethod
-    def validate_update_appliance_information_request(property_id, request):
+    @classmethod
+    def validate_update_appliance_information_request(cls, property_id, request):
         """
         Validates the request to the PUT route to update a property appliance
         :param property_id: The id of a propert in our system
@@ -23,7 +23,7 @@ class UpdateApplianceInformationRequest:
             raise Error(INVALID_REQUEST)
         if not isinstance(request['applianceUpdates'], list):
             logging.error('The applianceUpdates field must be an array')
-            logging.error(INVALID_REQUEST)
+            raise Error(INVALID_REQUEST)
         try:
             int(property_id)
         except Exception as e:
@@ -31,3 +31,38 @@ class UpdateApplianceInformationRequest:
                           exc_info=True,
                           extra={'information': {'error': str(e)}})
             raise Error(INVALID_REQUEST)
+
+        for appliance_update in request['applianceUpdates']:
+            cls._validate_appliance_update(appliance_update)
+
+    @staticmethod
+    def _validate_appliance_update(appliance_update):
+        """
+        Validates individual appliance update objects
+        :param appliance_update: python dict, a single appliance update object
+        """
+        if 'applianceBrand' in appliance_update:
+            brand = appliance_update['applianceBrand']
+            if brand is not None:
+                if not isinstance(brand, str):
+                    logging.error('The applianceBrand field must be a string')
+                    raise Error(INVALID_REQUEST)
+                if not brand.strip():
+                    logging.error('The applianceBrand field cannot be empty or whitespace-only')
+                    raise Error(INVALID_REQUEST)
+                if len(brand) > 100:
+                    logging.error('The applianceBrand field cannot exceed 100 characters')
+                    raise Error(INVALID_REQUEST)
+
+        if 'applianceModel' in appliance_update:
+            model = appliance_update['applianceModel']
+            if model is not None:
+                if not isinstance(model, str):
+                    logging.error('The applianceModel field must be a string')
+                    raise Error(INVALID_REQUEST)
+                if not model.strip():
+                    logging.error('The applianceModel field cannot be empty or whitespace-only')
+                    raise Error(INVALID_REQUEST)
+                if len(model) > 100:
+                    logging.error('The applianceModel field cannot exceed 100 characters')
+                    raise Error(INVALID_REQUEST)

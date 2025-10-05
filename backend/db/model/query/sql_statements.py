@@ -6,8 +6,8 @@ SELECT_CUSTOMER_FROM_USER_TABLE = """SELECT * FROM home_pulse_ai.users WHERE ema
 INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE = """INSERT INTO home_pulse_ai.properties 
 (user_id, street, city, state, zip, age, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
 
-INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE = """INSERT INTO home_pulse_ai.appliances 
-(property_id, appliance_type, age_in_years, estimated_replacement_cost) VALUES (%s, %s, %s, %s);"""
+INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE = """INSERT INTO home_pulse_ai.appliances
+(property_id, appliance_type, appliance_brand, appliance_model, age_in_years, estimated_replacement_cost) VALUES (%s, %s, %s, %s, %s, %s);"""
 
 INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE = """INSERT INTO home_pulse_ai.structures 
 (property_id, structure_type, age_in_years) VALUES (%s, %s, %s);"""
@@ -86,8 +86,8 @@ FROM home_pulse_ai.home_bot_training_information;"""
 UPDATE_FORECASTED_REPLACEMENT_DATE = """UPDATE home_pulse_ai.appliances 
 SET forecasted_replacement_date=%s WHERE property_id=%s AND appliance_type=%s;"""
 
-UPDATE_APPLIANCE_INFORMATION_BULK = """UPDATE home_pulse_ai.appliances 
-SET age_in_years=%s, estimated_replacement_cost=%s, forecasted_replacement_date=%s 
+UPDATE_APPLIANCE_INFORMATION_BULK = """UPDATE home_pulse_ai.appliances
+SET age_in_years=%s, estimated_replacement_cost=%s, forecasted_replacement_date=%s, appliance_brand=%s, appliance_model=%s
 WHERE property_id=%s AND appliance_type=%s;"""
 
 UPDATE_STRUCTURE_INFORMATION_BULK = """UPDATE home_pulse_ai.structures 

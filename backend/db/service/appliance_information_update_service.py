@@ -69,7 +69,13 @@ class ApplianceInformationUpdateService:
             estimated_replacement_cost = appliance['estimated_replacement_cost']
             forecasted_replacement_date = datetime.datetime.strptime(appliance['forecasted_replacement_date'],
                                                                      '%Y-%m-%d')
-            data = (age_in_years, estimated_replacement_cost, forecasted_replacement_date, property_id, appliance_type)
+            # Extract optional brand and model fields (use None as default)
+            appliance_brand = appliance.get('applianceBrand')
+            appliance_model = appliance.get('applianceModel')
+
+            # Data tuple matches the UPDATE statement parameter order:
+            # age_in_years, estimated_replacement_cost, forecasted_replacement_date, appliance_brand, appliance_model, property_id, appliance_type
+            data = (age_in_years, estimated_replacement_cost, forecasted_replacement_date, appliance_brand, appliance_model, property_id, appliance_type)
             items.append(data)
         return items
 

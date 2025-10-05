@@ -12,6 +12,49 @@ class Appliances:
         self.dryer = int(appliances['dryer'])
         self.refrigerator = int(appliances['refrigerator'])
         self.washer = int(appliances['washer'])
+        self.stove_brand = self._validate_and_get_optional_string(appliances, 'stoveBrand', 'stove brand')
+        self.stove_model = self._validate_and_get_optional_string(appliances, 'stoveModel', 'stove model')
+        self.dishwasher_brand = self._validate_and_get_optional_string(appliances, 'dishwasherBrand', 'dishwasher brand')
+        self.dishwasher_model = self._validate_and_get_optional_string(appliances, 'dishwasherModel', 'dishwasher model')
+        self.dryer_brand = self._validate_and_get_optional_string(appliances, 'dryerBrand', 'dryer brand')
+        self.dryer_model = self._validate_and_get_optional_string(appliances, 'dryerModel', 'dryer model')
+        self.refrigerator_brand = self._validate_and_get_optional_string(appliances, 'refrigeratorBrand', 'refrigerator brand')
+        self.refrigerator_model = self._validate_and_get_optional_string(appliances, 'refrigeratorModel', 'refrigerator model')
+        self.washer_brand = self._validate_and_get_optional_string(appliances, 'washerBrand', 'washer brand')
+        self.washer_model = self._validate_and_get_optional_string(appliances, 'washerModel', 'washer model')
+
+    @staticmethod
+    def _validate_and_get_optional_string(data, field_name, field_display_name, max_length=100):
+        """
+        Validates optional string fields for appliance brand and model
+        :param data: python dict, the appliances data
+        :param field_name: str, the field name to extract
+        :param field_display_name: str, the human-readable field name for error messages
+        :param max_length: int, maximum allowed length for the string (default 100)
+        :return: str or None, the validated value or None if not provided
+        """
+        value = data.get(field_name)
+
+        # If not provided, return None (field is optional)
+        if value is None:
+            return None
+
+        # If provided, must be a string
+        if not isinstance(value, str):
+            logging.error(f'The {field_display_name} field must be a string')
+            raise Error(INVALID_REQUEST)
+
+        # If provided, must not be empty or whitespace-only
+        if not value.strip():
+            logging.error(f'The {field_display_name} field cannot be empty or whitespace-only')
+            raise Error(INVALID_REQUEST)
+
+        # If provided, must not exceed maximum length
+        if len(value) > max_length:
+            logging.error(f'The {field_display_name} field cannot exceed {max_length} characters')
+            raise Error(INVALID_REQUEST)
+
+        return value
 
 
 class Structures:

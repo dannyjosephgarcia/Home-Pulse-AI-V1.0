@@ -1,9 +1,16 @@
 {
   "PostFileSave": [
     {
-      "agent": "jason-bourne-backend",
+      "agent": "jason-bourne-backend-test-updater",
       "files": ["./backend/**/*.py"],
-      "description": "Run unit-test-updater whenever a Python file in backend/ changes"
+      "description": "Run jason-bourne-backend-test-updater when backend Python files change"
+    }
+  ],
+  "PostAgentRun": [
+    {
+      "agent": "ethan-hunt-backend-coder",
+      "then": ["jason-bourne-backend-test-updater"],
+      "description": "Automatically run test updates after neo-coder modifies backend code"
     }
   ]
 }

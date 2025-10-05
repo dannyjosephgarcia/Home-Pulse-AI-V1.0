@@ -116,16 +116,20 @@ class PropertyRetrievalService:
                 appliance_id = results[i][0]
                 property_id = results[i][1]
                 appliance_type = results[i][2]
-                age_in_years = results[i][3]
-                estimated_replacement_cost = results[i][4]
-                if results[i][5]:
-                    forecasted_replacement_date = datetime.strftime(results[i][5], '%Y-%m-%d %H:%M:%S')
+                appliance_brand = results[i][3]
+                appliance_model = results[i][4]
+                age_in_years = results[i][5]
+                estimated_replacement_cost = results[i][6]
+                if results[i][7]:
+                    forecasted_replacement_date = datetime.strftime(results[i][7], '%Y-%m-%d %H:%M:%S')
                 else:
                     forecasted_replacement_date = 'TBD'
                 data = {
                     'id': appliance_id,
                     'property_id': property_id,
                     'appliance_type': appliance_type,
+                    'applianceBrand': appliance_brand,
+                    'applianceModel': appliance_model,
                     'age_in_years': age_in_years,
                     'estimated_replacement_cost': estimated_replacement_cost,
                     'forecasted_replacement_date': forecasted_replacement_date
