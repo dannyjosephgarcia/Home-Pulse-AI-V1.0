@@ -104,6 +104,19 @@ The backend uses environment-specific YAML configs:
 
 Configuration is loaded based on `ENV` environment variable in `container.py`.
 
+## Database Schema
+
+The MySQL database (`home_pulse_ai`) contains the following core tables:
+- **users**: Customer accounts with authentication, Stripe integration, and company relationships
+- **properties**: Property records linked to users via `user_id`
+- **appliances**: Appliance records linked to properties via `property_id`
+- **structures**: Structure records linked to properties via `property_id`
+- **appliance_information**: Reference table for appliance pricing data
+- **tenants**: Tenant information linked to properties via `property_id`
+- **property_images**: S3 image keys linked to properties
+
+All SQL statements are centralized in `backend/db/model/query/sql_statements.py` for maintainability.
+
 ## Testing
 
 - Tests are in `backend/tests/`
@@ -138,3 +151,31 @@ Authentication uses JWT tokens stored in localStorage on the frontend. Token val
 - CSRF protection is enabled via `flask-wtf` but exempted for the healthcheck endpoint.
 - The application uses Waitress server for local development and native Flask for production (see `app.py`).
 - Dependency injection wiring must be updated in `app.py` when adding new route modules.
+
+## Claude Code Agents
+
+Three custom agents are configured to maintain code quality and automated test coverage:
+
+### ethan-hunt-backend-coder (`.claude/agents/ethan-hunt-backend-coder.md`)
+Use this agent when creating or updating backend service code that interacts with the database:
+- Implements CRUD operations connecting models to database tables (properties, appliances, structures, appliance_information)
+- Maintains consistency with schema definitions in `backend/db/model/query/sql_statements.py`
+- Updates service layer logic in `backend/db/service/`
+- Follows existing naming conventions and logging patterns
+- **DO NOT** modify test files with this agent
+- Automatically triggers `jason-bourne-backend-test-updater` via PostAgentRun hook when complete
+
+### jason-bourne-backend-test-updater (`.claude/agents/jason-bourne-backend-test-updater.md`)
+Automatically triggers after backend code changes via PostFileSave or PostAgentRun hooks:
+- Updates unit tests in `backend/tests/` to align with backend code changes
+- Adjusts test assertions when database schema or models change
+- Creates integration tests for new API endpoints
+- Adds newly created test files to git
+- Triggered by: (1) PostFileSave hook when any `backend/**/*.py` file is saved, or (2) PostAgentRun hook after `ethan-hunt-backend-coder` completes
+
+### james-bond-frontend-coder (`.claude/agents/james-bond-frontend-coder.md`)
+Use this agent when creating or updating React frontend code:
+- Creates and updates React components, hooks, and utilities under `frontend/`
+- Ensures API calls align with backend endpoints defined in `frontend/src/lib/api.ts`
+- Maintains consistent naming conventions, file structure, and styling patterns
+- **DO NOT** modify backend code or test files with this agent

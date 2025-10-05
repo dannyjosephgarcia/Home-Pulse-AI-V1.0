@@ -226,10 +226,34 @@ class PropertyCreationInsertionService:
         stove_price = appliance_replacement_cost.get('STOVE', 100.00)
         refrigerator_price = appliance_replacement_cost.get('REFRIGERATOR', 100.00)
         washer_price = appliance_replacement_cost.get('WASHER', 100.00)
+
+        # Mapping of appliance names to their brand/model attribute names
+        brand_model_map = {
+            'stove': ('stove_brand', 'stove_model'),
+            'dishwasher': ('dishwasher_brand', 'dishwasher_model'),
+            'dryer': ('dryer_brand', 'dryer_model'),
+            'refrigerator': ('refrigerator_brand', 'refrigerator_model'),
+            'washer': ('washer_brand', 'washer_model')
+        }
+
         for property_id, property in properties.items():
             appliances = property.appliances
             for appliance_name, appliance_age in appliances.__dict__.items():
-                entry = [property_id, appliance_name, appliance_age]
+                # Skip brand and model attributes in the iteration
+                if appliance_name.endswith('_brand') or appliance_name.endswith('_model'):
+                    continue
+
+                brand = None
+                model = None
+
+                # Get brand and model if they exist
+                if appliance_name in brand_model_map:
+                    brand_attr, model_attr = brand_model_map[appliance_name]
+                    brand = getattr(appliances, brand_attr, None)
+                    model = getattr(appliances, model_attr, None)
+
+                # Build entry with property_id, appliance_type, brand, model, age, cost
+                entry = [property_id, appliance_name, brand, model, appliance_age]
                 if appliance_name == 'stove':
                     entry.append(stove_price)
                 if appliance_name == 'dishwasher':
