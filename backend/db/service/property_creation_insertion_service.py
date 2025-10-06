@@ -216,6 +216,7 @@ class PropertyCreationInsertionService:
     def format_appliances_for_table_insertion(properties, appliance_replacement_cost):
         """
         Formats the appliances to be able to execute an executemany statement
+        Handles optional appliances - only inserts appliances that are present
         :param properties
         :param appliance_replacement_cost:
         :return: python list
@@ -226,6 +227,7 @@ class PropertyCreationInsertionService:
         stove_price = appliance_replacement_cost.get('STOVE', 100.00)
         refrigerator_price = appliance_replacement_cost.get('REFRIGERATOR', 100.00)
         washer_price = appliance_replacement_cost.get('WASHER', 100.00)
+        ac_unit_price = appliance_replacement_cost.get('AC_UNIT', 100.00)
 
         # Mapping of appliance names to their brand/model attribute names
         brand_model_map = {
@@ -233,7 +235,18 @@ class PropertyCreationInsertionService:
             'dishwasher': ('dishwasher_brand', 'dishwasher_model'),
             'dryer': ('dryer_brand', 'dryer_model'),
             'refrigerator': ('refrigerator_brand', 'refrigerator_model'),
-            'washer': ('washer_brand', 'washer_model')
+            'washer': ('washer_brand', 'washer_model'),
+            'ac_unit': ('ac_unit_brand', 'ac_unit_model')
+        }
+
+        # Mapping of appliance names to their replacement costs
+        price_map = {
+            'stove': stove_price,
+            'dishwasher': dishwasher_price,
+            'dryer': dryer_price,
+            'refrigerator': refrigerator_price,
+            'washer': washer_price,
+            'ac_unit': ac_unit_price
         }
 
         for property_id, property in properties.items():
@@ -241,6 +254,10 @@ class PropertyCreationInsertionService:
             for appliance_name, appliance_age in appliances.__dict__.items():
                 # Skip brand and model attributes in the iteration
                 if appliance_name.endswith('_brand') or appliance_name.endswith('_model'):
+                    continue
+
+                # Skip appliances that are None (not provided)
+                if appliance_age is None:
                     continue
 
                 brand = None
@@ -252,25 +269,20 @@ class PropertyCreationInsertionService:
                     brand = getattr(appliances, brand_attr, None)
                     model = getattr(appliances, model_attr, None)
 
+                # Get replacement cost for this appliance
+                replacement_cost = price_map.get(appliance_name, 100.00)
+
                 # Build entry with property_id, appliance_type, brand, model, age, cost
-                entry = [property_id, appliance_name, brand, model, appliance_age]
-                if appliance_name == 'stove':
-                    entry.append(stove_price)
-                if appliance_name == 'dishwasher':
-                    entry.append(dishwasher_price)
-                if appliance_name == 'dryer':
-                    entry.append(dryer_price)
-                if appliance_name == 'refrigerator':
-                    entry.append(refrigerator_price)
-                if appliance_name == 'washer':
-                    entry.append(washer_price)
-                data.append(tuple(entry))
+                entry = (property_id, appliance_name, brand, model, appliance_age, replacement_cost)
+                data.append(entry)
+
         return data
 
     @staticmethod
     def format_structures_for_table_insertion(properties):
         """
-        Formats the appliances to be able to execute an executemany statement
+        Formats the structures to be able to execute an executemany statement
+        Handles optional structures - only inserts structures that are present
         :param properties
         :return: python list
         """
@@ -278,6 +290,10 @@ class PropertyCreationInsertionService:
         for property_id, property in properties.items():
             structures = property.structures
             for structure_name, structure_age in structures.__dict__.items():
+                # Skip structures that are None (not provided)
+                if structure_age is None:
+                    continue
+
                 entry = (property_id, structure_name, structure_age)
                 data.append(entry)
         return data
