@@ -154,7 +154,7 @@ Authentication uses JWT tokens stored in localStorage on the frontend. Token val
 
 ## Claude Code Agents
 
-Three custom agents are configured to maintain code quality and automated test coverage:
+Four custom agents are configured to maintain code quality, automated test coverage, and contract consistency:
 
 ### ethan-hunt-backend-coder (`.claude/agents/ethan-hunt-backend-coder.md`)
 Use this agent when creating or updating backend service code that interacts with the database:
@@ -179,3 +179,12 @@ Use this agent when creating or updating React frontend code:
 - Ensures API calls align with backend endpoints defined in `frontend/src/lib/api.ts`
 - Maintains consistent naming conventions, file structure, and styling patterns
 - **DO NOT** modify backend code or test files with this agent
+- Automatically triggers `jack-reacher-contract-enforcer` after modifying files in `frontend/src`
+
+### jack-reacher-contract-enforcer (`.claude/agents/jack-reacher-contract-enforcer.md`)
+Automatically triggers after `james-bond-frontend-coder` modifies frontend files:
+- Validates API contract consistency between frontend and backend
+- Detects breaking changes such as renamed fields, missing attributes, or type mismatches
+- Compares frontend API usage against backend definitions
+- Generates reports of inconsistencies and delegates fixes to `ethan-hunt-backend-coder` when needed
+- Triggered by: PostAgentRun hook after `james-bond-frontend-coder` completes

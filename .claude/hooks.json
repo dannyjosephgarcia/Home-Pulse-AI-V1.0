@@ -1,16 +1,26 @@
 {
   "PostFileSave": [
     {
+      "agent": "jack-reacher-contract-enforcer",
+      "files": ["./frontend/src/**/*.{js,jsx,ts,tsx}"],
+      "description": "Run contract enforcer whenever frontend source files change"
+    },
+    {
       "agent": "jason-bourne-backend-test-updater",
       "files": ["./backend/**/*.py"],
-      "description": "Run jason-bourne-backend-test-updater when backend Python files change"
+      "description": "Run test updater when backend Python files change"
     }
   ],
   "PostAgentRun": [
     {
+      "agent": "jack-reacher-contract-enforcer",
+      "then": ["ethan-hunt-backend-coder"],
+      "description": "After contract enforcer runs, pass any backend updates to Neo-Coder"
+    },
+    {
       "agent": "ethan-hunt-backend-coder",
       "then": ["jason-bourne-backend-test-updater"],
-      "description": "Automatically run test updates after neo-coder modifies backend code"
+      "description": "Automatically run test updater after Neo-Coder modifies backend code"
     }
   ]
 }

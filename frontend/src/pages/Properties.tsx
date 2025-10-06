@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 interface Appliance {
   name: string;
   age: number;
+  brand?: string;
+  model?: string;
 }
 
 interface Structure {
@@ -24,6 +26,9 @@ interface Property {
   appliances: Appliance[];
   structures: Structure[];
 }
+
+const AVAILABLE_APPLIANCES = ['Stove', 'Dishwasher', 'Dryer', 'Refrigerator', 'Washer', 'A/C Unit'];
+const AVAILABLE_STRUCTURES = ['Roof', 'Driveway', 'Water Heater', 'Furnace'];
 
 const US_STATES = [
   { value: 'AL', label: 'AL' }, { value: 'AK', label: 'AK' }, { value: 'AZ', label: 'AZ' }, { value: 'AR', label: 'AR' },
@@ -49,20 +54,8 @@ const Properties = () => {
       state: '',
       zip: '',
       homeAge: 0,
-      appliances: [
-        { name: 'Stove', age: 0 },
-        { name: 'Dishwasher', age: 0 },
-        { name: 'Dryer', age: 0 },
-        { name: 'Refrigerator', age: 0 },
-        { name: 'Washer', age: 0 },
-      ],
-      structures: [
-        { name: 'Roof', age: 0 },
-        { name: 'Driveway', age: 0 },
-        { name: 'Water Heater', age: 0 },
-        { name: 'Furnace', age: 0 },
-        { name: 'A/C Unit', age: 0 },
-      ]
+      appliances: [],
+      structures: []
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -79,20 +72,8 @@ const Properties = () => {
       state: '',
       zip: '',
       homeAge: 0,
-      appliances: [
-        { name: 'Stove', age: 0 },
-        { name: 'Dishwasher', age: 0 },
-        { name: 'Dryer', age: 0 },
-        { name: 'Refrigerator', age: 0 },
-        { name: 'Washer', age: 0 },
-      ],
-      structures: [
-        { name: 'Roof', age: 0 },
-        { name: 'Driveway', age: 0 },
-        { name: 'Water Heater', age: 0 },
-        { name: 'Furnace', age: 0 },
-        { name: 'A/C Unit', age: 0 },
-      ]
+      appliances: [],
+      structures: []
     }]);
   };
 
@@ -108,13 +89,61 @@ const Properties = () => {
     setProperties(updated);
   };
 
-  const updateAppliance = (propertyIndex: number, applianceIndex: number, age: number) => {
+  const addAppliance = (propertyIndex: number) => {
+    const updated = [...properties];
+    updated[propertyIndex].appliances.push({ name: '', age: 0, brand: '', model: '' });
+    setProperties(updated);
+  };
+
+  const removeAppliance = (propertyIndex: number, applianceIndex: number) => {
+    const updated = [...properties];
+    updated[propertyIndex].appliances = updated[propertyIndex].appliances.filter((_, i) => i !== applianceIndex);
+    setProperties(updated);
+  };
+
+  const updateApplianceName = (propertyIndex: number, applianceIndex: number, name: string) => {
+    const updated = [...properties];
+    updated[propertyIndex].appliances[applianceIndex].name = name;
+    setProperties(updated);
+  };
+
+  const updateApplianceAge = (propertyIndex: number, applianceIndex: number, age: number) => {
     const updated = [...properties];
     updated[propertyIndex].appliances[applianceIndex].age = age;
     setProperties(updated);
   };
 
-  const updateStructure = (propertyIndex: number, structureIndex: number, age: number) => {
+  const updateApplianceBrand = (propertyIndex: number, applianceIndex: number, brand: string) => {
+    const updated = [...properties];
+    updated[propertyIndex].appliances[applianceIndex].brand = brand;
+    setProperties(updated);
+  };
+
+  const updateApplianceModel = (propertyIndex: number, applianceIndex: number, model: string) => {
+    const updated = [...properties];
+    updated[propertyIndex].appliances[applianceIndex].model = model;
+    setProperties(updated);
+  };
+
+  const addStructure = (propertyIndex: number) => {
+    const updated = [...properties];
+    updated[propertyIndex].structures.push({ name: '', age: 0 });
+    setProperties(updated);
+  };
+
+  const removeStructure = (propertyIndex: number, structureIndex: number) => {
+    const updated = [...properties];
+    updated[propertyIndex].structures = updated[propertyIndex].structures.filter((_, i) => i !== structureIndex);
+    setProperties(updated);
+  };
+
+  const updateStructureName = (propertyIndex: number, structureIndex: number, name: string) => {
+    const updated = [...properties];
+    updated[propertyIndex].structures[structureIndex].name = name;
+    setProperties(updated);
+  };
+
+  const updateStructureAge = (propertyIndex: number, structureIndex: number, age: number) => {
     const updated = [...properties];
     updated[propertyIndex].structures[structureIndex].age = age;
     setProperties(updated);
@@ -155,7 +184,19 @@ const Properties = () => {
         zip: property.zip.trim(),
         homeAge: property.homeAge,
         appliances: property.appliances.reduce((acc, appliance) => {
-          acc[appliance.name.toLowerCase()] = appliance.age;
+          if (appliance.name) {
+            acc[appliance.name.toLowerCase()] = {
+              age: appliance.age,
+              ...(appliance.brand && { brand: appliance.brand.trim() }),
+              ...(appliance.model && { model: appliance.model.trim() })
+            };
+          }
+          return acc;
+        }, {} as Record<string, any>),
+        structures: property.structures.reduce((acc, structure) => {
+          if (structure.name) {
+            acc[structure.name.toLowerCase()] = structure.age;
+          }
           return acc;
         }, {} as Record<string, number>)
       }));
@@ -505,50 +546,194 @@ const Properties = () => {
                   </div>
                 </div>
 
-                {/* Appliances */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-white mb-4">Appliances</h3>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {property.appliances.map((appliance, applianceIndex) => (
-                      <div key={applianceIndex} className="space-y-2">
-                        <label className="text-white/90 text-sm font-medium">
-                          {appliance.name} Age (years)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={appliance.age || ''}
-                          onChange={(e) => updateAppliance(propertyIndex, applianceIndex, parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                          placeholder="Age in years"
-                          disabled={isLoading}
-                        />
-                      </div>
-                    ))}
+                {/* Appliances Section */}
+                <div className="mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-white">Appliances (Optional)</h3>
+                    <button
+                      type="button"
+                      onClick={() => addAppliance(propertyIndex)}
+                      className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-lg border border-white/30 hover:bg-white/20 transition-all duration-200 text-sm"
+                      disabled={isLoading}
+                    >
+                      <Plus size={16} />
+                      Add Appliance
+                    </button>
                   </div>
+
+                  {property.appliances.length === 0 ? (
+                    <p className="text-white/60 text-sm italic">No appliances added yet. Click "Add Appliance" to get started.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {property.appliances.map((appliance, applianceIndex) => (
+                        <div key={applianceIndex} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="space-y-2 w-full">
+                              <label className="text-white/90 text-sm font-medium">
+                                Appliance Type
+                              </label>
+                              <Select
+                                value={appliance.name}
+                                onValueChange={(value) => updateApplianceName(propertyIndex, applianceIndex, value)}
+                                disabled={isLoading}
+                              >
+                                <SelectTrigger className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all">
+                                  <SelectValue placeholder="Select appliance" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white/95 backdrop-blur-md border border-white/30 rounded-xl">
+                                  {AVAILABLE_APPLIANCES.map((applianceType) => (
+                                    <SelectItem
+                                      key={applianceType}
+                                      value={applianceType}
+                                      className="text-gray-800 hover:bg-blue-50 focus:bg-blue-50"
+                                    >
+                                      {applianceType}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-2 w-full">
+                              <label className="text-white/90 text-sm font-medium">
+                                Age (years)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={appliance.age || ''}
+                                onChange={(e) => updateApplianceAge(propertyIndex, applianceIndex, parseInt(e.target.value) || 0)}
+                                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                placeholder="Age in years"
+                                disabled={isLoading}
+                              />
+                            </div>
+
+                            <div className="space-y-2 w-full">
+                              <label className="text-white/90 text-sm font-medium">
+                                Brand (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={appliance.brand || ''}
+                                onChange={(e) => updateApplianceBrand(propertyIndex, applianceIndex, e.target.value)}
+                                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                placeholder="e.g., LG, Samsung"
+                                disabled={isLoading}
+                              />
+                            </div>
+
+                            <div className="space-y-2 w-full">
+                              <label className="text-white/90 text-sm font-medium">
+                                Model (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={appliance.model || ''}
+                                onChange={(e) => updateApplianceModel(propertyIndex, applianceIndex, e.target.value)}
+                                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                placeholder="e.g., Model XYZ"
+                                disabled={isLoading}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => removeAppliance(propertyIndex, applianceIndex)}
+                              className="text-red-400 hover:text-red-300 transition-colors px-4 py-2 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 flex items-center gap-2"
+                              disabled={isLoading}
+                            >
+                              <Trash2 size={20} />
+                              <span className="text-sm">Remove Appliance</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                {/* Structure */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-white mb-4">Structures</h3>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {property.structures.map((structure, structureIndex) => (
-                      <div key={structureIndex} className="space-y-2">
-                        <label className="text-white/90 text-sm font-medium">
-                          {structure.name} Age (years)
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={structure.age || ''}
-                          onChange={(e) => updateStructure(propertyIndex, structureIndex, parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                          placeholder="Age in years"
-                          disabled={isLoading}
-                        />
-                      </div>
-                    ))}
+                {/* Structures Section */}
+                <div className="mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-white">Structures (Optional)</h3>
+                    <button
+                      type="button"
+                      onClick={() => addStructure(propertyIndex)}
+                      className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-lg border border-white/30 hover:bg-white/20 transition-all duration-200 text-sm"
+                      disabled={isLoading}
+                    >
+                      <Plus size={16} />
+                      Add Structure
+                    </button>
                   </div>
+
+                  {property.structures.length === 0 ? (
+                    <p className="text-white/60 text-sm italic">No structures added yet. Click "Add Structure" to get started.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {property.structures.map((structure, structureIndex) => (
+                        <div key={structureIndex} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2 w-full">
+                              <label className="text-white/90 text-sm font-medium">
+                                Structure Type
+                              </label>
+                              <Select
+                                value={structure.name}
+                                onValueChange={(value) => updateStructureName(propertyIndex, structureIndex, value)}
+                                disabled={isLoading}
+                              >
+                                <SelectTrigger className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all">
+                                  <SelectValue placeholder="Select structure" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white/95 backdrop-blur-md border border-white/30 rounded-xl">
+                                  {AVAILABLE_STRUCTURES.map((structureType) => (
+                                    <SelectItem
+                                      key={structureType}
+                                      value={structureType}
+                                      className="text-gray-800 hover:bg-blue-50 focus:bg-blue-50"
+                                    >
+                                      {structureType}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-2 w-full">
+                              <label className="text-white/90 text-sm font-medium">
+                                Age (years)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={structure.age || ''}
+                                onChange={(e) => updateStructureAge(propertyIndex, structureIndex, parseInt(e.target.value) || 0)}
+                                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                placeholder="Age in years"
+                                disabled={isLoading}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => removeStructure(propertyIndex, structureIndex)}
+                              className="text-red-400 hover:text-red-300 transition-colors px-4 py-2 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 flex items-center gap-2"
+                              disabled={isLoading}
+                            >
+                              <Trash2 size={20} />
+                              <span className="text-sm">Remove Structure</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
