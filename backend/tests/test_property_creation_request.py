@@ -1,5 +1,5 @@
 import unittest
-from backend.db.model.property_creation_request import PropertyCreationRequest, Appliances, Structures
+from backend.db.model.property_creation_request import PropertyCreationRequest, Appliances, Structures, Unit
 from common.logging.error.error import Error
 
 
@@ -806,6 +806,441 @@ class TestPropertyCreationRequest(unittest.TestCase):
         """Test the construct_property_address static method"""
         address = PropertyCreationRequest.construct_property_address('456 Oak Ave', 'Portland', 'OR')
         self.assertEqual(address, '456 Oak Ave, Portland, OR')
+
+
+class TestUnit(unittest.TestCase):
+    """Test cases for Unit class"""
+
+    def test_valid_unit_creation_with_appliances(self):
+        """Test creating a valid Unit with unitNumber and appliances"""
+        unit_data = {
+            'unitNumber': 'Unit 101',
+            'appliances': {
+                'refrigerator': {'age': 5, 'brand': 'LG', 'model': 'XYZ'}
+            }
+        }
+
+        unit = Unit(unit_data)
+
+        self.assertEqual(unit.unit_number, 'Unit 101')
+        self.assertIsInstance(unit.appliances, Appliances)
+        self.assertEqual(unit.appliances.refrigerator, 5)
+        self.assertEqual(unit.appliances.refrigerator_brand, 'LG')
+        self.assertEqual(unit.appliances.refrigerator_model, 'XYZ')
+
+    def test_valid_unit_creation_without_appliances(self):
+        """Test creating a valid Unit with unitNumber but no appliances"""
+        unit_data = {
+            'unitNumber': 'Unit 102'
+        }
+
+        unit = Unit(unit_data)
+
+        self.assertEqual(unit.unit_number, 'Unit 102')
+        self.assertIsInstance(unit.appliances, Appliances)
+        self.assertIsNone(unit.appliances.refrigerator)
+        self.assertIsNone(unit.appliances.stove)
+
+    def test_valid_unit_creation_with_empty_appliances(self):
+        """Test creating a valid Unit with empty appliances dict"""
+        unit_data = {
+            'unitNumber': 'Unit 103',
+            'appliances': {}
+        }
+
+        unit = Unit(unit_data)
+
+        self.assertEqual(unit.unit_number, 'Unit 103')
+        self.assertIsInstance(unit.appliances, Appliances)
+        self.assertIsNone(unit.appliances.stove)
+
+    def test_unit_missing_unitNumber_field(self):
+        """Test that Unit creation fails without unitNumber"""
+        unit_data = {
+            'appliances': {'stove': {'age': 5}}
+        }
+
+        with self.assertRaises(Error):
+            Unit(unit_data)
+
+    def test_unit_with_multiple_appliances(self):
+        """Test Unit with multiple appliances"""
+        unit_data = {
+            'unitNumber': 'Apt 5B',
+            'appliances': {
+                'stove': {'age': 3, 'brand': 'GE'},
+                'refrigerator': {'age': 2},
+                'dishwasher': {'age': 4, 'brand': 'Bosch', 'model': 'ABC123'}
+            }
+        }
+
+        unit = Unit(unit_data)
+
+        self.assertEqual(unit.unit_number, 'Apt 5B')
+        self.assertEqual(unit.appliances.stove, 3)
+        self.assertEqual(unit.appliances.stove_brand, 'GE')
+        self.assertEqual(unit.appliances.refrigerator, 2)
+        self.assertIsNone(unit.appliances.refrigerator_brand)
+        self.assertEqual(unit.appliances.dishwasher, 4)
+        self.assertEqual(unit.appliances.dishwasher_brand, 'Bosch')
+
+
+class TestMultifamilyPropertyCreation(unittest.TestCase):
+    """Test cases for multifamily property creation"""
+
+    def test_valid_multifamily_property_with_single_unit(self):
+        """Test creating a valid multifamily property with one unit"""
+        user_id = 123
+        request = {
+            'street': '456 Oak Ave',
+            'city': 'Dallas',
+            'state': 'TX',
+            'zip': '75201',
+            'homeAge': 15,
+            'isMultifamily': True,
+            'structures': {
+                'roof': 15,
+                'furnace': 10
+            },
+            'units': [
+                {
+                    'unitNumber': 'Unit 101',
+                    'appliances': {
+                        'refrigerator': {'age': 3, 'brand': 'Samsung'}
+                    }
+                }
+            ]
+        }
+
+        obj = PropertyCreationRequest(user_id, request)
+
+        self.assertEqual(obj.user_id, user_id)
+        self.assertTrue(obj.is_multifamily)
+        self.assertIsNone(obj.appliances)
+        self.assertIsNotNone(obj.units)
+        self.assertEqual(len(obj.units), 1)
+        self.assertEqual(obj.units[0].unit_number, 'Unit 101')
+        self.assertEqual(obj.units[0].appliances.refrigerator, 3)
+        self.assertEqual(obj.structures.roof, 15)
+
+    def test_valid_multifamily_property_with_multiple_units(self):
+        """Test creating a valid multifamily property with multiple units"""
+        user_id = 456
+        request = {
+            'street': '789 Elm St',
+            'city': 'Houston',
+            'state': 'TX',
+            'zip': '77001',
+            'homeAge': 20,
+            'isMultifamily': True,
+            'structures': {
+                'roof': 20
+            },
+            'units': [
+                {
+                    'unitNumber': 'Unit 1A',
+                    'appliances': {
+                        'stove': {'age': 5}
+                    }
+                },
+                {
+                    'unitNumber': 'Unit 1B',
+                    'appliances': {
+                        'refrigerator': {'age': 2, 'brand': 'LG'}
+                    }
+                },
+                {
+                    'unitNumber': 'Unit 2A',
+                    'appliances': {}
+                }
+            ]
+        }
+
+        obj = PropertyCreationRequest(user_id, request)
+
+        self.assertTrue(obj.is_multifamily)
+        self.assertIsNone(obj.appliances)
+        self.assertEqual(len(obj.units), 3)
+        self.assertEqual(obj.units[0].unit_number, 'Unit 1A')
+        self.assertEqual(obj.units[1].unit_number, 'Unit 1B')
+        self.assertEqual(obj.units[2].unit_number, 'Unit 2A')
+
+    def test_valid_single_family_property_backward_compatibility(self):
+        """Test single-family property with appliances at property-level (backward compatibility)"""
+        user_id = 789
+        request = {
+            'street': '123 Main St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78701',
+            'homeAge': 10,
+            'isMultifamily': False,
+            'appliances': {
+                'refrigerator': {'age': 5, 'brand': 'LG', 'model': 'XYZ'}
+            },
+            'structures': {
+                'roof': 10
+            }
+        }
+
+        obj = PropertyCreationRequest(user_id, request)
+
+        self.assertFalse(obj.is_multifamily)
+        self.assertIsNotNone(obj.appliances)
+        self.assertIsNone(obj.units)
+        self.assertEqual(obj.appliances.refrigerator, 5)
+
+    def test_valid_single_family_property_isMultifamily_omitted(self):
+        """Test that isMultifamily defaults to False when omitted"""
+        user_id = 999
+        request = {
+            'street': '321 Pine St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78702',
+            'homeAge': 12,
+            'appliances': {
+                'stove': {'age': 3}
+            },
+            'structures': {}
+        }
+
+        obj = PropertyCreationRequest(user_id, request)
+
+        self.assertFalse(obj.is_multifamily)
+        self.assertIsNotNone(obj.appliances)
+        self.assertIsNone(obj.units)
+
+    def test_invalid_isMultifamily_not_boolean(self):
+        """Test that isMultifamily must be boolean if provided"""
+        user_id = 123
+        request = {
+            'street': '123 Main St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78701',
+            'homeAge': 10,
+            'isMultifamily': 'yes',
+            'appliances': {}
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_multifamily_without_units(self):
+        """Test that multifamily property must have units array"""
+        user_id = 123
+        request = {
+            'street': '789 Elm St',
+            'city': 'Houston',
+            'state': 'TX',
+            'zip': '77001',
+            'homeAge': 20,
+            'isMultifamily': True,
+            'appliances': {}
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_multifamily_with_empty_units_array(self):
+        """Test that multifamily property must have at least one unit"""
+        user_id = 123
+        request = {
+            'street': '789 Elm St',
+            'city': 'Houston',
+            'state': 'TX',
+            'zip': '77001',
+            'homeAge': 20,
+            'isMultifamily': True,
+            'units': []
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_multifamily_with_property_level_appliances(self):
+        """Test that multifamily properties cannot have property-level appliances"""
+        user_id = 123
+        request = {
+            'street': '321 Pine St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78702',
+            'homeAge': 12,
+            'isMultifamily': True,
+            'appliances': {
+                'refrigerator': {'age': 2}
+            },
+            'units': [{'unitNumber': 'Unit 1', 'appliances': {}}]
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_single_family_with_units(self):
+        """Test that single-family properties cannot have units"""
+        user_id = 123
+        request = {
+            'street': '987 Cedar Ln',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78704',
+            'homeAge': 5,
+            'isMultifamily': False,
+            'units': [{'unitNumber': 'Unit 1', 'appliances': {}}]
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_duplicate_unit_numbers(self):
+        """Test that duplicate unit numbers within the same property are rejected"""
+        user_id = 123
+        request = {
+            'street': '654 Maple Dr',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78703',
+            'homeAge': 8,
+            'isMultifamily': True,
+            'units': [
+                {'unitNumber': 'Unit 1', 'appliances': {}},
+                {'unitNumber': 'Unit 1', 'appliances': {}}
+            ]
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_valid_unique_unit_numbers(self):
+        """Test that unique unit numbers are accepted"""
+        user_id = 123
+        request = {
+            'street': '111 Broadway',
+            'city': 'New York',
+            'state': 'NY',
+            'zip': '10001',
+            'homeAge': 50,
+            'isMultifamily': True,
+            'units': [
+                {'unitNumber': 'Unit 1', 'appliances': {}},
+                {'unitNumber': 'Unit 2', 'appliances': {}},
+                {'unitNumber': 'Unit 3', 'appliances': {}}
+            ]
+        }
+
+        obj = PropertyCreationRequest(user_id, request)
+
+        self.assertEqual(len(obj.units), 3)
+        self.assertEqual(obj.units[0].unit_number, 'Unit 1')
+        self.assertEqual(obj.units[1].unit_number, 'Unit 2')
+        self.assertEqual(obj.units[2].unit_number, 'Unit 3')
+
+    def test_invalid_units_not_list(self):
+        """Test that units must be a list"""
+        user_id = 123
+        request = {
+            'street': '123 Main St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78701',
+            'homeAge': 10,
+            'isMultifamily': True,
+            'units': 'not a list'
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_unit_not_dict(self):
+        """Test that each unit must be a dictionary"""
+        user_id = 123
+        request = {
+            'street': '123 Main St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78701',
+            'homeAge': 10,
+            'isMultifamily': True,
+            'units': ['Unit 1']
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_unit_number_not_string(self):
+        """Test that unitNumber must be a string"""
+        user_id = 123
+        request = {
+            'street': '123 Main St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78701',
+            'homeAge': 10,
+            'isMultifamily': True,
+            'units': [{'unitNumber': 101, 'appliances': {}}]
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_unit_number_empty_string(self):
+        """Test that unitNumber cannot be empty string"""
+        user_id = 123
+        request = {
+            'street': '123 Main St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78701',
+            'homeAge': 10,
+            'isMultifamily': True,
+            'units': [{'unitNumber': '', 'appliances': {}}]
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_invalid_unit_number_whitespace_only(self):
+        """Test that unitNumber cannot be whitespace-only"""
+        user_id = 123
+        request = {
+            'street': '123 Main St',
+            'city': 'Austin',
+            'state': 'TX',
+            'zip': '78701',
+            'homeAge': 10,
+            'isMultifamily': True,
+            'units': [{'unitNumber': '   ', 'appliances': {}}]
+        }
+
+        with self.assertRaises(Error):
+            PropertyCreationRequest(user_id, request)
+
+    def test_multifamily_structures_at_property_level(self):
+        """Test that structures are always at property-level for multifamily"""
+        user_id = 123
+        request = {
+            'street': '222 Complex Rd',
+            'city': 'Dallas',
+            'state': 'TX',
+            'zip': '75202',
+            'homeAge': 25,
+            'isMultifamily': True,
+            'structures': {
+                'roof': 25,
+                'water heater': 10
+            },
+            'units': [
+                {'unitNumber': 'Unit A', 'appliances': {'stove': {'age': 3}}}
+            ]
+        }
+
+        obj = PropertyCreationRequest(user_id, request)
+
+        self.assertIsNotNone(obj.structures)
+        self.assertEqual(obj.structures.roof, 25)
+        self.assertEqual(obj.structures.water_heater, 10)
 
 
 if __name__ == '__main__':

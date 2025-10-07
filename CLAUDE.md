@@ -145,19 +145,26 @@ Authentication uses JWT tokens stored in localStorage on the frontend. Token val
 - **MySQL**: Database connection pooling via `HpAIDbConnectionPool`
 - **FAISS**: Vector similarity search for HomeBot RAG system
 
+## Git Workflow
+
+- Branch naming follows pattern `HP-XX` where XX is the issue/task number
+- Main branch for PRs: `main`
+- Commit messages should be descriptive and reference the issue number
+
 ## Notes for Development
 
-- The frontend API base URL is currently set to `http://localhost:5000` in `frontend/src/lib/api.ts` (line 3). Switch to production URL when deploying.
+- **IMPORTANT**: The frontend API base URL is configured in `frontend/src/lib/api.ts` (line 1). Currently set to production (`https://home-pulse-api.onrender.com`). Comment/uncomment to switch between production and local (`http://localhost:5000`). This is a common source of connection issues during local development.
 - CSRF protection is enabled via `flask-wtf` but exempted for the healthcheck endpoint.
 - The application uses Waitress server for local development and native Flask for production (see `app.py`).
 - Dependency injection wiring must be updated in `app.py` when adding new route modules.
+- Appliances and structures are disjoined from properties as of HP-64, allowing them to exist independently.
 
 ## Claude Code Agents
 
-Five custom agents are configured to maintain code quality, automated test coverage, contract consistency, and third-party integrations:
+Five custom agents are configured to maintain code quality, automated test coverage, contract consistency, and third-party integrations. Some agents trigger automatically via hooks, while others should be manually invoked:
 
-### ethan-hunt-backend-coder (`.claude/agents/ethan-hunt-backend-coder.md`)
-Use this agent when creating or updating backend service code that interacts with the database:
+### ethan-hunt-backend-coder (`.claude/agents/ethan-hunt-backend-coder.md`) [MANUAL]
+**When to use**: Creating or updating backend service code that interacts with the database:
 - Implements CRUD operations connecting models to database tables (properties, appliances, structures, appliance_information)
 - Maintains consistency with schema definitions in `backend/db/model/query/sql_statements.py`
 - Updates service layer logic in `backend/db/service/`
@@ -165,32 +172,34 @@ Use this agent when creating or updating backend service code that interacts wit
 - **DO NOT** modify test files with this agent
 - Automatically triggers `jason-bourne-backend-test-updater` via PostAgentRun hook when complete
 
-### jason-bourne-backend-test-updater (`.claude/agents/jason-bourne-backend-test-updater.md`)
-Automatically triggers after backend code changes via PostFileSave or PostAgentRun hooks:
+### jason-bourne-backend-test-updater (`.claude/agents/jason-bourne-backend-test-updater.md`) [AUTO]
+**When it triggers**: Automatically after backend code changes via PostFileSave or PostAgentRun hooks.
+**What it does**:
 - Updates unit tests in `backend/tests/` to align with backend code changes
 - Adjusts test assertions when database schema or models change
 - Creates integration tests for new API endpoints
 - Adds newly created test files to git
 - Triggered by: (1) PostFileSave hook when any `backend/**/*.py` file is saved, or (2) PostAgentRun hook after `ethan-hunt-backend-coder` completes
 
-### james-bond-frontend-coder (`.claude/agents/james-bond-frontend-coder.md`)
-Use this agent when creating or updating React frontend code:
+### james-bond-frontend-coder (`.claude/agents/james-bond-frontend-coder.md`) [MANUAL]
+**When to use**: Creating or updating React frontend code:
 - Creates and updates React components, hooks, and utilities under `frontend/`
 - Ensures API calls align with backend endpoints defined in `frontend/src/lib/api.ts`
 - Maintains consistent naming conventions, file structure, and styling patterns
 - **DO NOT** modify backend code or test files with this agent
 - Automatically triggers `jack-reacher-contract-enforcer` after modifying files in `frontend/src`
 
-### jack-reacher-contract-enforcer (`.claude/agents/jack-reacher-contract-enforcer.md`)
-Automatically triggers after `james-bond-frontend-coder` modifies frontend files:
+### jack-reacher-contract-enforcer (`.claude/agents/jack-reacher-contract-enforcer.md`) [AUTO]
+**When it triggers**: Automatically after `james-bond-frontend-coder` modifies frontend files.
+**What it does**:
 - Validates API contract consistency between frontend and backend
 - Detects breaking changes such as renamed fields, missing attributes, or type mismatches
 - Compares frontend API usage against backend definitions
 - Generates reports of inconsistencies and delegates fixes to `ethan-hunt-backend-coder` when needed
 - Triggered by: PostAgentRun hook after `james-bond-frontend-coder` completes
 
-### jack-ryan-integration-specialist (`.claude/agents/jack-ryan-integration-specialist.md`)
-Use this agent to research and plan third-party integrations:
+### jack-ryan-integration-specialist (`.claude/agents/jack-ryan-integration-specialist.md`) [MANUAL]
+**When to use**: Research and plan third-party integrations:
 - Reads and analyzes documentation for third-party APIs and services
 - Creates integration plans with detailed implementation steps
 - Identifies required dependencies, authentication patterns, and API endpoints

@@ -7,10 +7,13 @@ INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE = """INSERT INTO home_pulse_ai.prop
 (user_id, street, city, state, zip, age, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
 
 INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE = """INSERT INTO home_pulse_ai.appliances
-(property_id, appliance_type, appliance_brand, appliance_model, age_in_years, estimated_replacement_cost) VALUES (%s, %s, %s, %s, %s, %s);"""
+(property_id, unit_id, appliance_type, appliance_brand, appliance_model, age_in_years, estimated_replacement_cost) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
 
-INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE = """INSERT INTO home_pulse_ai.structures 
+INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE = """INSERT INTO home_pulse_ai.structures
 (property_id, structure_type, age_in_years) VALUES (%s, %s, %s);"""
+
+INSERT_UNITS_INTO_UNITS_TABLE = """INSERT INTO home_pulse_ai.units
+(property_id, unit_number) VALUES (%s, %s);"""
 
 SELECT_CUSTOMER_FOR_AUTHENTICATION = """SELECT id, email, hashed_password, first_name, last_name, company_id 
 FROM home_pulse_ai.users WHERE email=%s;"""
