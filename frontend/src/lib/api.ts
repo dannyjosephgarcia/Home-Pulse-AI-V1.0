@@ -121,7 +121,7 @@ class ApiClient {
   }
 
   async submitProperties(properties: any[]): Promise<{ data: any | null; error: any }> {
-    return this.request('/v1/customers/appliances', {
+    return this.request('/v1/properties', {
       method: 'POST',
       body: JSON.stringify(properties),
     });

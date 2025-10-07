@@ -68,7 +68,7 @@ class ApplianceInformationUpdateService:
             age_in_years = appliance['age_in_years']
             estimated_replacement_cost = appliance['estimated_replacement_cost']
             forecasted_replacement_date = datetime.datetime.strptime(appliance['forecasted_replacement_date'],
-                                                                     '%Y-%m-%d')
+                                                                     '%Y-%m-%d %H:%M:%S')
             # Extract optional brand and model fields (use None as default)
             appliance_brand = appliance.get('applianceBrand')
             appliance_model = appliance.get('applianceModel')

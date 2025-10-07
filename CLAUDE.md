@@ -154,7 +154,7 @@ Authentication uses JWT tokens stored in localStorage on the frontend. Token val
 
 ## Claude Code Agents
 
-Four custom agents are configured to maintain code quality, automated test coverage, and contract consistency:
+Five custom agents are configured to maintain code quality, automated test coverage, contract consistency, and third-party integrations:
 
 ### ethan-hunt-backend-coder (`.claude/agents/ethan-hunt-backend-coder.md`)
 Use this agent when creating or updating backend service code that interacts with the database:
@@ -188,3 +188,11 @@ Automatically triggers after `james-bond-frontend-coder` modifies frontend files
 - Compares frontend API usage against backend definitions
 - Generates reports of inconsistencies and delegates fixes to `ethan-hunt-backend-coder` when needed
 - Triggered by: PostAgentRun hook after `james-bond-frontend-coder` completes
+
+### jack-ryan-integration-specialist (`.claude/agents/jack-ryan-integration-specialist.md`)
+Use this agent to research and plan third-party integrations:
+- Reads and analyzes documentation for third-party APIs and services
+- Creates integration plans with detailed implementation steps
+- Identifies required dependencies, authentication patterns, and API endpoints
+- Delegates implementation tasks to `ethan-hunt-backend-coder` with clear specifications
+- Use when integrating services like payment processors, external APIs, or cloud services
