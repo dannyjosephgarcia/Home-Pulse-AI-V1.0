@@ -13,14 +13,24 @@
   ],
   "PostAgentRun": [
     {
+      "agent": "james-bond-frontend-coder",
+      "then": ["jack-reacher-contract-enforcer"],
+      "description": "After james-bond modifies frontend files, run contract enforcer"
+    },
+    {
       "agent": "jack-reacher-contract-enforcer",
       "then": ["ethan-hunt-backend-coder"],
-      "description": "After contract enforcer runs, pass any backend updates to Neo-Coder"
+      "description": "After contract enforcer runs, pass any backend updates to ethan-hunt-backend-coder"
     },
     {
       "agent": "ethan-hunt-backend-coder",
       "then": ["jason-bourne-backend-test-updater"],
-      "description": "Automatically run test updater after Neo-Coder modifies backend code"
+      "description": "Automatically run test updater after ethan-hunt-backend-coder modifies backend code"
+    },
+    {
+      "agent": "jack-ryan-integration-specialist",
+      "then": ["ethan-hunt-backend-coder"],
+      "description": "After the integration specialist generates implementation specs, hand off to the backend coder"
     }
   ]
 }
