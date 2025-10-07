@@ -28,7 +28,6 @@ def create_app():
     flask_app = Flask(__name__)
     flask_app.container = container
 
-    CORS(flask_app)
 
     flask_app.register_blueprint(home_pulse_db_routes_blueprint)
     flask_app.register_blueprint(property_routes_blueprint)
@@ -42,6 +41,7 @@ def create_app():
                                       stripe_payment_routes,
                                       appliance_information_routes,
                                       home_bot_routes])
+    CORS(flask_app)
     csrf.init_app(flask_app)
 
     logging.config.dictConfig(logging_cfg.cfg)
