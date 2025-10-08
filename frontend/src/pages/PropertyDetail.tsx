@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload, Edit, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload, Edit, Save, X, ChevronDown, ChevronRight, Building2, DoorOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { HomeBot } from '../components/HomeBot';
 import 'leaflet/dist/leaflet.css';
@@ -31,6 +31,13 @@ interface Property {
   age: number;
   user_id: number;
   created_at: string;
+  isMultifamily?: boolean;
+}
+
+interface Unit {
+  unit_id: number;
+  unit_number: string;
+  property_id: number;
 }
 
 interface Appliance {
@@ -39,6 +46,7 @@ interface Appliance {
   age_in_years: number;
   estimated_replacement_cost: number;
   property_id: number;
+  unit_id?: number;
   forecasted_replacement_date: string;
 }
 
@@ -58,6 +66,8 @@ const PropertyDetail = () => {
   const [property, setProperty] = useState<Property | null>(null);
   const [appliances, setAppliances] = useState<Appliance[]>([]);
   const [structures, setStructures] = useState<Structure[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [unitAppliances, setUnitAppliances] = useState<{ [unitId: number]: Appliance[] }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isGeocodingLoading, setIsGeocodingLoading] = useState(false);
@@ -66,6 +76,7 @@ const PropertyDetail = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [expandedAppliances, setExpandedAppliances] = useState<Set<number>>(new Set());
   const [expandedStructures, setExpandedStructures] = useState<Set<number>>(new Set());
+  const [expandedUnits, setExpandedUnits] = useState<Set<number>>(new Set());
   const [editingAppliances, setEditingAppliances] = useState<{ [key: number]: Appliance }>({});
   const [editingStructures, setEditingStructures] = useState<{ [key: number]: Structure }>({});
   const [isUpdatingAppliances, setIsUpdatingAppliances] = useState(false);
@@ -207,15 +218,9 @@ const PropertyDetail = () => {
         return;
       }
 
-      // Fetch appliances
-      const { data: appliancesData, error: appliancesError } = await apiClient.getPropertyAppliances(id);
+      setProperty(propertyData);
 
-      if (appliancesError) {
-        console.error('Error fetching appliances:', appliancesError);
-        toast.error('Failed to load appliances');
-      }
-
-      // Fetch structures
+      // Fetch structures (always at property level)
       const { data: structuresData, error: structuresError } = await apiClient.getPropertyStructures(id);
 
       if (structuresError) {
@@ -223,9 +228,49 @@ const PropertyDetail = () => {
         toast.error('Failed to load structures');
       }
 
-      setProperty(propertyData);
-      setAppliances(appliancesData || []);
       setStructures(structuresData || []);
+
+      // If multifamily, fetch units and their appliances
+      if (propertyData?.isMultifamily) {
+        const { data: unitsData, error: unitsError } = await apiClient.getPropertyUnits(id);
+
+        if (unitsError) {
+          console.error('Error fetching units:', unitsError);
+          toast.error('Failed to load units');
+        } else {
+          setUnits(unitsData || []);
+
+          // Fetch appliances for each unit
+          const unitAppliancesData: { [unitId: number]: Appliance[] } = {};
+
+          if (unitsData && unitsData.length > 0) {
+            await Promise.all(
+              unitsData.map(async (unit: Unit) => {
+                const { data: appliancesData, error: appliancesError } = await apiClient.getUnitAppliances(unit.unit_id);
+
+                if (appliancesError) {
+                  console.error(`Error fetching appliances for unit ${unit.unit_id}:`, appliancesError);
+                  unitAppliancesData[unit.unit_id] = [];
+                } else {
+                  unitAppliancesData[unit.unit_id] = appliancesData || [];
+                }
+              })
+            );
+          }
+
+          setUnitAppliances(unitAppliancesData);
+        }
+      } else {
+        // For single-family, fetch property-level appliances
+        const { data: appliancesData, error: appliancesError } = await apiClient.getPropertyAppliances(id);
+
+        if (appliancesError) {
+          console.error('Error fetching appliances:', appliancesError);
+          toast.error('Failed to load appliances');
+        }
+
+        setAppliances(appliancesData || []);
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('Network error while loading property data');
@@ -260,6 +305,16 @@ const PropertyDetail = () => {
       newExpanded.add(structureId);
     }
     setExpandedStructures(newExpanded);
+  };
+
+  const toggleUnitExpansion = (unitId: number) => {
+    const newExpanded = new Set(expandedUnits);
+    if (newExpanded.has(unitId)) {
+      newExpanded.delete(unitId);
+    } else {
+      newExpanded.add(unitId);
+    }
+    setExpandedUnits(newExpanded);
   };
 
   const startEditingAppliance = (appliance: Appliance) => {
@@ -467,162 +522,13 @@ const PropertyDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Appliances */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Wrench className="h-5 w-5" />
-                    <span>Appliances ({appliances.length})</span>
-                  </div>
-                  {Object.keys(editingAppliances).length > 0 && (
-                    <Button
-                      onClick={saveAppliances}
-                      disabled={isUpdatingAppliances}
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      {isUpdatingAppliances ? 'Saving...' : 'Apply Changes'}
-                    </Button>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {appliances.length === 0 ? (
-                  <p className="text-white/70 text-center py-4">No appliances recorded</p>
-                ) : (
-                  <div className="space-y-3">
-                    {appliances.map((appliance) => {
-                      const isExpanded = expandedAppliances.has(appliance.id);
-                      const isEditing = editingAppliances[appliance.id];
-                      const currentData = isEditing || appliance;
-                      const rawDate = currentData.forecasted_replacement_date;
-                      let formattedDate = '';
-
-                      if (rawDate) {
-                          const d = new Date(rawDate);
-                          if (!isNaN(d.getTime())) {
-                            formattedDate = d.toISOString().split('T')[0];
-                          }
-                        }
-
-                      return (
-                        <div key={appliance.id} className="bg-white/5 rounded-lg">
-                          <div
-                            className="p-3 cursor-pointer hover:bg-white/10 transition-colors"
-                            onClick={() => toggleApplianceExpansion(appliance.id)}
-                          >
-                            <div className="flex justify-between items-start">
-                              <div className="flex items-center space-x-2">
-                                {isExpanded ? (
-                                  <ChevronDown className="h-4 w-4 text-white/70" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4 text-white/70" />
-                                )}
-                                <h4 className="text-white font-medium capitalize">{appliance.appliance_type}</h4>
-                              </div>
-                              <span className="text-white/70 text-sm">{appliance.age_in_years} years old</span>
-                            </div>
-                            <div className="ml-6 space-y-1">
-                              {appliance.estimated_replacement_cost && (
-                                <p className="text-white/60 text-sm">
-                                  Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
-                                </p>
-                              )}
-                              {appliance.forecasted_replacement_date && (
-                                <p className="text-white/60 text-sm">
-                                  Forecasted replacement: {new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {isExpanded && (
-                            <div className="px-3 pb-3 ml-6 space-y-3 border-t border-white/10 pt-3">
-                              {!isEditing ? (
-                                <Button
-                                  onClick={() => startEditingAppliance(appliance)}
-                                  size="sm"
-                                  variant="outline"
-                                  className="bg-white/10 hover:bg-white/20 text-white border-white/30"
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Update
-                                </Button>
-                              ) : (
-                                <div className="space-y-3">
-                                  <div>
-                                    <Label className="text-white/70 text-sm">Type</Label>
-                                    <Input
-                                      value={currentData.appliance_type}
-                                      onChange={(e) => updateApplianceField(appliance.id, 'appliance_type', e.target.value)}
-                                      className="bg-white/10 border-white/20 text-white"
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label className="text-white/70 text-sm">Age (years)</Label>
-                                    <Input
-                                      type="number"
-                                      value={currentData.age_in_years}
-                                      onChange={(e) => updateApplianceField(appliance.id, 'age_in_years', parseInt(e.target.value) || 0)}
-                                      className="bg-white/10 border-white/20 text-white"
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label className="text-white/70 text-sm">Estimated Replacement Cost</Label>
-                                    <Input
-                                      type="number"
-                                      value={currentData.estimated_replacement_cost || ''}
-                                      onChange={(e) => updateApplianceField(appliance.id, 'estimated_replacement_cost', parseFloat(e.target.value) || 0)}
-                                      className="bg-white/10 border-white/20 text-white"
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label className="text-white/70 text-sm">Forecasted Replacement Date</Label>
-                                    <Input
-                                      type="date"
-                                      value={formattedDate}
-                                      onChange={(e) =>
-                                        updateApplianceField(
-                                          appliance.id,
-                                          'forecasted_replacement_date',
-                                          e.target.value
-                                        )
-                                      }
-                                      className="bg-white/10 border-white/20 text-white"
-                                    />
-                                  </div>
-                                  <div className="flex space-x-2">
-                                    <Button
-                                      onClick={() => cancelEditingAppliance(appliance.id)}
-                                      size="sm"
-                                      variant="outline"
-                                      className="bg-white/10 hover:bg-white/20 text-white border-white/30"
-                                    >
-                                      <X className="h-4 w-4 mr-2" />
-                                      Cancel
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Structures */}
+            {/* Structures - Always at Property Level */}
             <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardHeader>
                 <CardTitle className="text-white flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Building className="h-5 w-5" />
-                    <span>Structures ({structures.length})</span>
+                    <span>Property Structures ({structures.length})</span>
                   </div>
                   {Object.keys(editingStructures).length > 0 && (
                     <Button
@@ -770,6 +676,354 @@ const PropertyDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Conditional Rendering: Single-Family Appliances OR Multifamily Units */}
+            {!property?.isMultifamily ? (
+              /* Single-Family Appliances */
+              <Card className="bg-white/10 backdrop-blur-md border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Wrench className="h-5 w-5" />
+                      <span>Appliances ({appliances.length})</span>
+                    </div>
+                    {Object.keys(editingAppliances).length > 0 && (
+                      <Button
+                        onClick={saveAppliances}
+                        disabled={isUpdatingAppliances}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        {isUpdatingAppliances ? 'Saving...' : 'Apply Changes'}
+                      </Button>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {appliances.length === 0 ? (
+                    <p className="text-white/70 text-center py-4">No appliances recorded</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {appliances.map((appliance) => {
+                      const isExpanded = expandedAppliances.has(appliance.id);
+                      const isEditing = editingAppliances[appliance.id];
+                      const currentData = isEditing || appliance;
+                      const rawDate = currentData.forecasted_replacement_date;
+                      let formattedDate = '';
+
+                      if (rawDate) {
+                          const d = new Date(rawDate);
+                          if (!isNaN(d.getTime())) {
+                            formattedDate = d.toISOString().split('T')[0];
+                          }
+                        }
+
+                      return (
+                        <div key={appliance.id} className="bg-white/5 rounded-lg">
+                          <div
+                            className="p-3 cursor-pointer hover:bg-white/10 transition-colors"
+                            onClick={() => toggleApplianceExpansion(appliance.id)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center space-x-2">
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4 text-white/70" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-white/70" />
+                                )}
+                                <h4 className="text-white font-medium capitalize">{appliance.appliance_type}</h4>
+                              </div>
+                              <span className="text-white/70 text-sm">{appliance.age_in_years} years old</span>
+                            </div>
+                            <div className="ml-6 space-y-1">
+                              {appliance.estimated_replacement_cost && (
+                                <p className="text-white/60 text-sm">
+                                  Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
+                                </p>
+                              )}
+                              {appliance.forecasted_replacement_date && (
+                                <p className="text-white/60 text-sm">
+                                  Forecasted replacement: {new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="px-3 pb-3 ml-6 space-y-3 border-t border-white/10 pt-3">
+                              {!isEditing ? (
+                                <Button
+                                  onClick={() => startEditingAppliance(appliance)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Update
+                                </Button>
+                              ) : (
+                                <div className="space-y-3">
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Type</Label>
+                                    <Input
+                                      value={currentData.appliance_type}
+                                      onChange={(e) => updateApplianceField(appliance.id, 'appliance_type', e.target.value)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Age (years)</Label>
+                                    <Input
+                                      type="number"
+                                      value={currentData.age_in_years}
+                                      onChange={(e) => updateApplianceField(appliance.id, 'age_in_years', parseInt(e.target.value) || 0)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Estimated Replacement Cost</Label>
+                                    <Input
+                                      type="number"
+                                      value={currentData.estimated_replacement_cost || ''}
+                                      onChange={(e) => updateApplianceField(appliance.id, 'estimated_replacement_cost', parseFloat(e.target.value) || 0)}
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-white/70 text-sm">Forecasted Replacement Date</Label>
+                                    <Input
+                                      type="date"
+                                      value={formattedDate}
+                                      onChange={(e) =>
+                                        updateApplianceField(
+                                          appliance.id,
+                                          'forecasted_replacement_date',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="bg-white/10 border-white/20 text-white"
+                                    />
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      onClick={() => cancelEditingAppliance(appliance.id)}
+                                      size="sm"
+                                      variant="outline"
+                                      className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                                    >
+                                      <X className="h-4 w-4 mr-2" />
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            ) : (
+              /* Multifamily Units */
+              <Card className="bg-white/10 backdrop-blur-md border-purple-400/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center space-x-2">
+                    <Building2 className="h-5 w-5 text-purple-300" />
+                    <span>Units ({units.length})</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {units.length === 0 ? (
+                    <p className="text-white/70 text-center py-4">No units recorded</p>
+                  ) : (
+                    <div className="space-y-6">
+                      {units.map((unit) => {
+                        const isExpanded = expandedUnits.has(unit.unit_id);
+                        const appliances = unitAppliances[unit.unit_id] || [];
+
+                        return (
+                          <div key={unit.unit_id} className="bg-gradient-to-br from-purple-900/20 to-purple-800/20 rounded-xl border-2 border-purple-400/30 shadow-lg">
+                            <div
+                              className="p-4 cursor-pointer hover:bg-purple-700/20 transition-colors rounded-t-xl"
+                              onClick={() => toggleUnitExpansion(unit.unit_id)}
+                            >
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-3">
+                                  {isExpanded ? (
+                                    <ChevronDown className="h-5 w-5 text-purple-300" />
+                                  ) : (
+                                    <ChevronRight className="h-5 w-5 text-purple-300" />
+                                  )}
+                                  <DoorOpen className="h-6 w-6 text-purple-300" />
+                                  <div className="flex items-center space-x-3">
+                                    <h4 className="text-white font-bold text-lg">{unit.unit_number}</h4>
+                                    <span className="px-3 py-1 bg-purple-500/30 border border-purple-400/50 rounded-full text-purple-200 text-xs font-semibold">
+                                      {appliances.length} {appliances.length === 1 ? 'appliance' : 'appliances'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {isExpanded && (
+                              <div className="px-4 pb-4 border-t-2 border-purple-400/30 bg-purple-950/20">
+                                <div className="mt-4">
+                                  <div className="bg-purple-900/30 rounded-lg p-3 mb-4 border border-purple-400/20">
+                                    <h5 className="text-purple-200 font-semibold mb-1 flex items-center space-x-2">
+                                      <Wrench className="h-5 w-5 text-purple-300" />
+                                      <span>Appliances for {unit.unit_number}</span>
+                                    </h5>
+                                    <p className="text-purple-300/70 text-xs ml-7">
+                                      All appliances below belong to this unit
+                                    </p>
+                                  </div>
+                                  {appliances.length === 0 ? (
+                                    <div className="bg-white/5 rounded-lg p-6 text-center border border-dashed border-purple-400/20">
+                                      <Wrench className="h-12 w-12 text-purple-300/50 mx-auto mb-2" />
+                                      <p className="text-white/60 text-sm italic">No appliances recorded for this unit</p>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      {appliances.map((appliance) => {
+                                        const isAppExpanded = expandedAppliances.has(appliance.id);
+                                        const isEditing = editingAppliances[appliance.id];
+                                        const currentData = isEditing || appliance;
+                                        const rawDate = currentData.forecasted_replacement_date;
+                                        let formattedDate = '';
+
+                                        if (rawDate) {
+                                          const d = new Date(rawDate);
+                                          if (!isNaN(d.getTime())) {
+                                            formattedDate = d.toISOString().split('T')[0];
+                                          }
+                                        }
+
+                                        return (
+                                          <div key={appliance.id} className="bg-white/10 rounded-lg border border-purple-400/30 shadow-md">
+                                            <div
+                                              className="p-4 cursor-pointer hover:bg-purple-700/20 transition-colors rounded-t-lg"
+                                              onClick={() => toggleApplianceExpansion(appliance.id)}
+                                            >
+                                              <div className="flex justify-between items-start">
+                                                <div className="flex items-center space-x-3 flex-1">
+                                                  {isAppExpanded ? (
+                                                    <ChevronDown className="h-4 w-4 text-purple-300" />
+                                                  ) : (
+                                                    <ChevronRight className="h-4 w-4 text-purple-300" />
+                                                  )}
+                                                  <div className="flex items-center space-x-2 flex-1">
+                                                    <h6 className="text-white font-semibold capitalize text-base">{appliance.appliance_type}</h6>
+                                                    <span className="px-2 py-0.5 bg-purple-600/40 border border-purple-400/40 rounded text-purple-200 text-xs font-medium">
+                                                      {unit.unit_number}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                                <span className="text-purple-200 text-sm font-medium ml-2">{appliance.age_in_years} years old</span>
+                                              </div>
+                                              <div className="ml-7 mt-2 space-y-1">
+                                                {appliance.estimated_replacement_cost && (
+                                                  <p className="text-purple-200/70 text-sm">
+                                                    Estimated replacement: ${appliance.estimated_replacement_cost.toLocaleString()}
+                                                  </p>
+                                                )}
+                                                {appliance.forecasted_replacement_date && (
+                                                  <p className="text-purple-200/70 text-sm">
+                                                    Forecasted replacement: {new Date(appliance.forecasted_replacement_date).toLocaleDateString()}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            {isAppExpanded && (
+                                              <div className="px-4 pb-4 ml-7 space-y-3 border-t border-purple-400/30 pt-4 bg-purple-950/20">
+                                                {!isEditing ? (
+                                                  <Button
+                                                    onClick={() => startEditingAppliance(appliance)}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-100 border-purple-400/40"
+                                                  >
+                                                    <Edit className="h-4 w-4 mr-2" />
+                                                    Update
+                                                  </Button>
+                                                ) : (
+                                                  <div className="space-y-3">
+                                                    <div>
+                                                      <Label className="text-purple-200/80 text-sm">Type</Label>
+                                                      <Input
+                                                        value={currentData.appliance_type}
+                                                        onChange={(e) => updateApplianceField(appliance.id, 'appliance_type', e.target.value)}
+                                                        className="bg-purple-950/30 border-purple-400/30 text-white focus:border-purple-400"
+                                                      />
+                                                    </div>
+                                                    <div>
+                                                      <Label className="text-purple-200/80 text-sm">Age (years)</Label>
+                                                      <Input
+                                                        type="number"
+                                                        value={currentData.age_in_years}
+                                                        onChange={(e) => updateApplianceField(appliance.id, 'age_in_years', parseInt(e.target.value) || 0)}
+                                                        className="bg-purple-950/30 border-purple-400/30 text-white focus:border-purple-400"
+                                                      />
+                                                    </div>
+                                                    <div>
+                                                      <Label className="text-purple-200/80 text-sm">Estimated Replacement Cost</Label>
+                                                      <Input
+                                                        type="number"
+                                                        value={currentData.estimated_replacement_cost || ''}
+                                                        onChange={(e) => updateApplianceField(appliance.id, 'estimated_replacement_cost', parseFloat(e.target.value) || 0)}
+                                                        className="bg-purple-950/30 border-purple-400/30 text-white focus:border-purple-400"
+                                                      />
+                                                    </div>
+                                                    <div>
+                                                      <Label className="text-purple-200/80 text-sm">Forecasted Replacement Date</Label>
+                                                      <Input
+                                                        type="date"
+                                                        value={formattedDate}
+                                                        onChange={(e) =>
+                                                          updateApplianceField(
+                                                            appliance.id,
+                                                            'forecasted_replacement_date',
+                                                            e.target.value
+                                                          )
+                                                        }
+                                                        className="bg-purple-950/30 border-purple-400/30 text-white focus:border-purple-400"
+                                                      />
+                                                    </div>
+                                                    <div className="flex space-x-2">
+                                                      <Button
+                                                        onClick={() => cancelEditingAppliance(appliance.id)}
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-100 border-purple-400/40"
+                                                      >
+                                                        <X className="h-4 w-4 mr-2" />
+                                                        Cancel
+                                                      </Button>
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 

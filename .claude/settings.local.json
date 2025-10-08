@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(python:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(test:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []
