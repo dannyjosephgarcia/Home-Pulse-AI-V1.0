@@ -32,6 +32,8 @@ from backend.db.service.appliance_information_update_service import ApplianceInf
 from backend.db.service.structure_information_update_service import StructureInformationUpdateService
 from backend.db.service.property_creation_bulk_insertion_service import PropertyCreationBulkInsertionService
 from backend.db.service.property_needs_attention_retrieval_service import PropertyNeedsAttentionRetrievalService
+from backend.db.service.unit_retrieval_service import UnitRetrievalService
+from backend.db.service.unit_appliance_retrieval_service import UnitApplianceRetrievalService
 
 
 class Container(containers.DeclarativeContainer):
@@ -157,3 +159,9 @@ class Container(containers.DeclarativeContainer):
 
     property_needs_attention_retrieval_service = providers.Singleton(PropertyNeedsAttentionRetrievalService,
                                                                      home_pulse_db_connection_pool)
+
+    unit_retrieval_service = providers.Singleton(UnitRetrievalService,
+                                                 home_pulse_db_connection_pool)
+
+    unit_appliance_retrieval_service = providers.Singleton(UnitApplianceRetrievalService,
+                                                           home_pulse_db_connection_pool)

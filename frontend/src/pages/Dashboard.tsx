@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus, PhoneCall, Wrench } from 'lucide-react';
+import { Home, MapPin, Plus, Users, Calendar, DollarSign, AlertCircle, Edit3, Save, X, Eye, UserPlus, PhoneCall, Wrench, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '../components/UserProfile';
@@ -20,6 +20,7 @@ interface Property {
   age: number;
   created_at: string;
   user_id: number;
+  isMultifamily?: boolean;
 }
 
 interface Tenant {
@@ -358,6 +359,9 @@ const Dashboard = () => {
   );
 
   function renderPropertyTab() {
+    const singleFamilyProperties = properties.filter(p => !p.isMultifamily);
+    const multiFamilyProperties = properties.filter(p => p.isMultifamily);
+
     return (
       <div>
 
@@ -376,51 +380,116 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.map((property) => (
-            <Card
-              key={property.id}
-              className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group"
-              onClick={() => handlePropertyClick(property.id)}
-            >
-              <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <MapPin className="h-5 w-5" />
-                  <span>{property.address}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Postal Code:</span>
-                    <span className="text-white font-medium">{property.postal_code || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Address:</span>
-                    <span className="text-white font-medium">{property.address || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Home Age:</span>
-                    <span className="text-white font-medium">{property.age ? `${property.age} years` : 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Added:</span>
-                    <span className="text-white font-medium">
-                      {new Date(property.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-4 text-center">
-                  <span className="text-white/60 group-hover:text-white/80 transition-colors">
-                    Click to view details →
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-8">
+          {/* Single Family Properties Section */}
+          {singleFamilyProperties.length > 0 && (
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <Home className="h-6 w-6 text-white" />
+                <h3 className="text-xl font-semibold text-white">Single Family Properties</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {singleFamilyProperties.map((property) => (
+                  <Card
+                    key={property.id}
+                    className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group"
+                    onClick={() => handlePropertyClick(property.id)}
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center space-x-2">
+                        <MapPin className="h-5 w-5" />
+                        <span>{property.address}</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Postal Code:</span>
+                          <span className="text-white font-medium">{property.postal_code || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Address:</span>
+                          <span className="text-white font-medium">{property.address || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Home Age:</span>
+                          <span className="text-white font-medium">{property.age ? `${property.age} years` : 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Added:</span>
+                          <span className="text-white font-medium">
+                            {new Date(property.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 text-center">
+                        <span className="text-white/60 group-hover:text-white/80 transition-colors">
+                          Click to view details →
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Multi Family Properties Section */}
+          {multiFamilyProperties.length > 0 && (
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <Building2 className="h-6 w-6 text-white" />
+                <h3 className="text-xl font-semibold text-white">Multi Family Properties</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {multiFamilyProperties.map((property) => (
+                  <Card
+                    key={property.id}
+                    className="bg-white/10 backdrop-blur-md border-purple-400/30 hover:bg-white/20 transition-all duration-200 cursor-pointer group"
+                    onClick={() => handlePropertyClick(property.id)}
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center space-x-2">
+                        <Building2 className="h-5 w-5 text-purple-300" />
+                        <span>{property.address}</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Postal Code:</span>
+                          <span className="text-white font-medium">{property.postal_code || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Address:</span>
+                          <span className="text-white font-medium">{property.address || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Home Age:</span>
+                          <span className="text-white font-medium">{property.age ? `${property.age} years` : 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/70">Added:</span>
+                          <span className="text-white font-medium">
+                            {new Date(property.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 text-center">
+                        <span className="text-white/60 group-hover:text-white/80 transition-colors">
+                          Click to view details →
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Add Property Card */}
-           <Card
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card
               className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer group border-dashed"
               onClick={() => navigate('/properties')}
             >
@@ -445,6 +514,7 @@ const Dashboard = () => {
                 </p>
               </CardContent>
             </Card>
+          </div>
         </div>
       )}
       </div>

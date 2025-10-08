@@ -87,13 +87,15 @@ class PropertyRetrievalService:
                 postal_code = results[i][6]
                 address = results[i][7]
                 created_at = results[i][8]
+                is_multifamily = bool(results[i][9])
                 data = {
                     'id': property_id,
                     'user_id': user_id,
                     'postal_code': postal_code,
                     'age': age,
                     'address': address,
-                    'created_at': created_at
+                    'created_at': created_at,
+                    'isMultifamily': is_multifamily
                 }
                 formatted_results.append(data)
         elif retrieval_type == 'SINGLE':
@@ -103,13 +105,15 @@ class PropertyRetrievalService:
             postal_code = results[0][6]
             address = results[0][7]
             created_at = results[0][8]
+            is_multifamily = bool(results[0][9])
             formatted_results = {
                 'id': property_id,
                 'user_id': user_id,
                 'postal_code': postal_code,
                 'age': age,
                 'address': address,
-                'created_at': created_at
+                'created_at': created_at,
+                'isMultifamily': is_multifamily
             }
         elif retrieval_type == 'APPLIANCES':
             for i in range(len(results)):
@@ -124,9 +128,11 @@ class PropertyRetrievalService:
                     forecasted_replacement_date = datetime.strftime(results[i][7], '%Y-%m-%d %H:%M:%S')
                 else:
                     forecasted_replacement_date = 'TBD'
+                unit_id = results[i][8] if results[i][8] is not None else None
                 data = {
                     'id': appliance_id,
                     'property_id': property_id,
+                    'unit_id': unit_id,
                     'appliance_type': appliance_type,
                     'applianceBrand': appliance_brand,
                     'applianceModel': appliance_model,

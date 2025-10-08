@@ -18,11 +18,39 @@ INSERT_UNITS_INTO_UNITS_TABLE = """INSERT INTO home_pulse_ai.units
 SELECT_CUSTOMER_FOR_AUTHENTICATION = """SELECT id, email, hashed_password, first_name, last_name, company_id 
 FROM home_pulse_ai.users WHERE email=%s;"""
 
-SELECT_PROPERTIES_BY_USER_ID = """SELECT * FROM home_pulse_ai.properties WHERE user_id=%s;"""
+SELECT_PROPERTIES_BY_USER_ID = """SELECT
+    p.id,
+    p.user_id,
+    p.age,
+    p.street,
+    p.city,
+    p.state,
+    p.zip,
+    p.address,
+    p.created_at,
+    CASE WHEN EXISTS (SELECT 1 FROM home_pulse_ai.units u WHERE u.property_id = p.id AND u.unit_number IS NOT NULL) THEN 1 ELSE 0 END as is_multifamily
+FROM home_pulse_ai.properties p
+WHERE p.user_id = %s;"""
 
 SELECT_ADDRESSES_BY_USER_ID = """SELECT id, address FROM home_pulse_ai.properties WHERE user_id=%s;"""
 
-SELECT_PROPERTY_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.properties WHERE id=%s;"""
+SELECT_PROPERTY_BY_PROPERTY_ID = """SELECT
+    p.id,
+    p.user_id,
+    p.age,
+    p.street,
+    p.city,
+    p.state,
+    p.zip,
+    p.address,
+    p.created_at,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM home_pulse_ai.units u
+        WHERE u.property_id = p.id
+        AND u.unit_number IS NOT NULL
+    ) THEN 1 ELSE 0 END as is_multifamily
+FROM home_pulse_ai.properties p
+WHERE p.id = %s;"""
 
 SELECT_APPLIANCES_BY_PROPERTY_ID = """SELECT * FROM home_pulse_ai.appliances WHERE property_id=%s;"""
 
@@ -99,32 +127,48 @@ WHERE property_id=%s AND structure_type=%s;"""
 
 INSERT_PROPERTY_INFORMATION_BULK = """"""
 
-SELECT_PROPERTY_INFORMATION_BY_USER_FOR_MANAGEMENT_TAB = """SELECT ap.id, 
-       ap.property_id, 
-       ap.appliance_type AS component_name, 
-       ap.age_in_years, 
-       ap.estimated_replacement_cost, 
-       ap.forecasted_replacement_date, 
+SELECT_PROPERTY_INFORMATION_BY_USER_FOR_MANAGEMENT_TAB = """SELECT ap.id,
+       ap.property_id,
+       ap.appliance_type AS component_name,
+       ap.age_in_years,
+       ap.estimated_replacement_cost,
+       ap.forecasted_replacement_date,
        pr.address
 FROM appliances AS ap
-JOIN properties AS pr 
+JOIN properties AS pr
   ON ap.property_id = pr.id
 WHERE ap.forecasted_replacement_date <= CURDATE() + INTERVAL 3 MONTH
   AND ap.property_id IN (SELECT id FROM properties WHERE user_id = %s)
 
 UNION
 
-SELECT sp.id, 
-       sp.property_id, 
-       sp.structure_type AS component_name, 
-       sp.age_in_years, 
-       sp.estimated_replacement_cost, 
-       sp.forecasted_replacement_date, 
+SELECT sp.id,
+       sp.property_id,
+       sp.structure_type AS component_name,
+       sp.age_in_years,
+       sp.estimated_replacement_cost,
+       sp.forecasted_replacement_date,
        pr.address
 FROM structures AS sp
-JOIN properties AS pr 
+JOIN properties AS pr
   ON sp.property_id = pr.id
 WHERE sp.forecasted_replacement_date <= CURDATE() + INTERVAL 3 MONTH
   AND sp.property_id IN (SELECT id FROM properties WHERE user_id = %s)
 
 ORDER BY property_id;"""
+
+GET_UNITS_BY_PROPERTY_ID = """SELECT unit_id, unit_number, property_id, created_at, updated_at
+FROM home_pulse_ai.units
+WHERE property_id = %s
+ORDER BY unit_number ASC;"""
+
+GET_APPLIANCES_BY_UNIT_ID = """SELECT id, property_id, unit_id, appliance_type, appliance_brand, appliance_model,
+age_in_years, estimated_replacement_cost, forecasted_replacement_date
+FROM home_pulse_ai.appliances
+WHERE unit_id = %s
+ORDER BY appliance_type ASC;"""
+
+VERIFY_UNIT_OWNERSHIP = """SELECT u.unit_id
+FROM home_pulse_ai.units u
+JOIN home_pulse_ai.properties p ON u.property_id = p.id
+WHERE u.unit_id = %s AND p.user_id = %s;"""

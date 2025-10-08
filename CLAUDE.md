@@ -109,13 +109,41 @@ Configuration is loaded based on `ENV` environment variable in `container.py`.
 The MySQL database (`home_pulse_ai`) contains the following core tables:
 - **users**: Customer accounts with authentication, Stripe integration, and company relationships
 - **properties**: Property records linked to users via `user_id`
-- **appliances**: Appliance records linked to properties via `property_id`
-- **structures**: Structure records linked to properties via `property_id`
+- **units**: Unit records for multifamily properties, linked via `property_id`
+- **appliances**: Appliance records with optional `unit_id` (multifamily) or `property_id` only (single-family)
+- **structures**: Structure records linked to properties via `property_id` (always property-level)
 - **appliance_information**: Reference table for appliance pricing data
-- **tenants**: Tenant information linked to properties via `property_id`
+- **tenants**: Tenant information with optional `unit_id` (multifamily) or `property_id` only (single-family)
 - **property_images**: S3 image keys linked to properties
 
 All SQL statements are centralized in `backend/db/model/query/sql_statements.py` for maintainability.
+
+### Multifamily vs Single-Family Architecture
+
+Properties are dynamically classified as multifamily or single-family based on the presence of units:
+
+**Multifamily Properties:**
+- Have one or more records in the `units` table with non-null `unit_number`
+- Appliances are associated with specific units via `unit_id`
+- Tenants are associated with specific units via `unit_id`
+- Structures remain at property level (no `unit_id`)
+
+**Single-Family Properties:**
+- Have NO records in the `units` table
+- Appliances have `unit_id = NULL`, associated only with `property_id`
+- Tenants have `unit_id = NULL`, associated only with `property_id`
+- Structures are at property level
+
+The `isMultifamily` field is computed dynamically in SQL queries using:
+```sql
+CASE WHEN EXISTS (
+    SELECT 1 FROM units u
+    WHERE u.property_id = p.id
+    AND u.unit_number IS NOT NULL
+) THEN 1 ELSE 0 END as is_multifamily
+```
+
+This computed field must be included in all property retrieval queries to ensure frontend can properly differentiate property types.
 
 ## Testing
 
@@ -124,17 +152,41 @@ All SQL statements are centralized in `backend/db/model/query/sql_statements.py`
 - Use `tox.ini` for test configuration
 - `PYTHONPATH` is set to root directory for imports
 
+## Schema Documentation
+
+A schema extraction script is available to generate up-to-date database documentation:
+
+```bash
+DB_HOST=your-endpoint DB_USER=user DB_PASSWORD=pass DB_NAME=home_pulse_ai python scripts/dump_schema.py
+```
+
+This generates:
+- `backend/db/schema.md`: Human-readable markdown documentation with tables, columns, types, foreign keys, and indexes
+- `backend/db/schema.sql`: SQL CREATE TABLE statements
+
+Run this script whenever the database schema changes to keep documentation in sync. These files provide Claude Code with complete schema context without requiring database credentials.
+
 ## API Structure
 
 The API follows RESTful conventions with versioned endpoints under `/v1/`:
 
 - Customer/Auth: `/v1/customers/*`
 - Properties: `/v1/properties/*`
+  - `GET /v1/properties/{property_id}` - Must return `isMultifamily` field
+  - `GET /v1/properties/{property_id}/units` - Returns units for multifamily properties
+  - `GET /v1/properties/{property_id}/appliances` - Returns property-level appliances (single-family)
+  - `GET /v1/properties/{property_id}/structures` - Returns structures (all property types)
+- Units: `/v1/units/*`
+  - `GET /v1/units/{unit_id}/appliances` - Returns unit-level appliances (multifamily)
 - Payments: Stripe webhooks and session creation
 - Appliances: Price analysis and updates
 - Home Bot: AI chatbot endpoints
 
 Authentication uses JWT tokens stored in localStorage on the frontend. Token validation happens in the `CustomerAuthenticationService`.
+
+**Frontend-Backend Contract**: The frontend (`PropertyDetail.tsx`) uses the `isMultifamily` field to determine which appliances endpoint to call:
+- If `isMultifamily === true`: Fetches units, then unit appliances for each unit
+- If `isMultifamily === false`: Fetches property-level appliances directly
 
 ## Key Integration Points
 
@@ -157,7 +209,10 @@ Authentication uses JWT tokens stored in localStorage on the frontend. Token val
 - CSRF protection is enabled via `flask-wtf` but exempted for the healthcheck endpoint.
 - The application uses Waitress server for local development and native Flask for production (see `app.py`).
 - Dependency injection wiring must be updated in `app.py` when adding new route modules.
-- Appliances and structures are disjoined from properties as of HP-64, allowing them to exist independently.
+- When adding new property retrieval queries, always include the computed `isMultifamily` field to maintain frontend-backend contract.
+- Units table should only contain entries for multifamily properties with valid `unit_number` values.
+- Single-family properties should never have records in the `units` table.
+- Property-level appliances (single-family) have `unit_id = NULL`; unit-level appliances (multifamily) have `unit_id` set.
 
 ## Claude Code Agents
 
