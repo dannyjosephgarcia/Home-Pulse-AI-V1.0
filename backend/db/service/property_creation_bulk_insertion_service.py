@@ -46,8 +46,6 @@ class PropertyCreationBulkInsertionService:
         logging.info(START_OF_METHOD)
         try:
             bulk_properties_df = pd.read_csv(content)
-
-            # Validate required columns exist
             required_columns = [
                 'street', 'city', 'state', 'postal_code', 'property_age', 'unit_number',
                 'stove_brand', 'stove_model', 'stove_age',
@@ -87,7 +85,6 @@ class PropertyCreationBulkInsertionService:
         data_to_upload = []
 
         for row in bulk_properties_df.itertuples(index=False):
-            # Helper function to safely convert to int or None
             def safe_int(value):
                 if pd.isna(value) or value == '' or str(value).strip() == '':
                     return None
@@ -96,7 +93,6 @@ class PropertyCreationBulkInsertionService:
                 except (ValueError, TypeError):
                     return None
 
-            # Parse property information
             property_data = {
                 'user_id': user_id,
                 'street': str(row.street).strip(),
@@ -104,20 +100,16 @@ class PropertyCreationBulkInsertionService:
                 'state': str(row.state).strip(),
                 'postal_code': str(row.postal_code).strip(),
                 'property_age': safe_int(row.property_age),
-                'unit_number': int(row.unit_number),
-                'address': f"{row.street}, {row.city}, {row.state} {row.postal_code}"
+                'unit_number': str(row.unit_number),
+                'address': f"{row.street}, {row.city}, {row.state}"
             }
 
-            # Parse appliance information
             appliances = []
-
-            # Helper function to safely convert to string or None
             def safe_str(value):
                 if pd.isna(value) or value == '' or str(value).strip() == '':
                     return None
                 return str(value).strip()
 
-            # Stove
             stove_age = safe_int(row.stove_age)
             stove_brand = safe_str(row.stove_brand)
             stove_model = safe_str(row.stove_model)
@@ -129,7 +121,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': stove_age
                 })
 
-            # Washer
             washer_age = safe_int(row.washer_age)
             washer_brand = safe_str(row.washer_brand)
             washer_model = safe_str(row.washer_model)
@@ -141,7 +132,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': washer_age
                 })
 
-            # Air Conditioner
             air_conditioner_age = safe_int(row.air_conditioner_age)
             air_conditioner_brand = safe_str(row.air_conditioner_brand)
             air_conditioner_model = safe_str(row.air_conditioner_model)
@@ -153,7 +143,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': air_conditioner_age
                 })
 
-            # Water Heater
             water_heater_age = safe_int(row.water_heater_age)
             water_heater_brand = safe_str(row.water_heater_brand)
             water_heater_model = safe_str(row.water_heater_model)
@@ -165,7 +154,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': water_heater_age
                 })
 
-            # Dryer
             dryer_age = safe_int(row.dryer_age)
             dryer_brand = safe_str(row.dryer_brand)
             dryer_model = safe_str(row.dryer_model)
@@ -177,7 +165,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': dryer_age
                 })
 
-            # Dishwasher
             dishwasher_age = safe_int(row.dishwasher_age)
             dishwasher_brand = safe_str(row.dishwasher_brand)
             dishwasher_model = safe_str(row.dishwasher_model)
@@ -189,7 +176,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': dishwasher_age
                 })
 
-            # Refrigerator
             refrigerator_age = safe_int(row.refrigerator_age)
             refrigerator_brand = safe_str(row.refrigerator_brand)
             refrigerator_model = safe_str(row.refrigerator_model)
@@ -201,10 +187,7 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': refrigerator_age
                 })
 
-            # Parse structure information
             structures = []
-
-            # Roof
             roof_age = safe_int(row.roof_age)
             if roof_age is not None:
                 structures.append({
@@ -212,7 +195,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': roof_age
                 })
 
-            # Driveway
             driveway_age = safe_int(row.driveway_age)
             if driveway_age is not None:
                 structures.append({
@@ -220,7 +202,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': driveway_age
                 })
 
-            # Furnace
             furnace_age = safe_int(row.furnace_age)
             if furnace_age is not None:
                 structures.append({
@@ -228,7 +209,6 @@ class PropertyCreationBulkInsertionService:
                     'age_in_years': furnace_age
                 })
 
-            # Deck
             deck_age = safe_int(row.deck_age)
             if deck_age is not None:
                 structures.append({
@@ -255,18 +235,13 @@ class PropertyCreationBulkInsertionService:
         """
         logging.info(START_OF_METHOD)
         insert_record_status = 200
-        cursor = None
-
         try:
-            cursor = cnx.get_cursor()
-
-            # Process each property with its related data
+            cursor = cnx.cursor()
             for item in data_to_upload:
                 property_data = item['property']
                 appliances = item['appliances']
                 structures = item['structures']
 
-                # Insert property
                 property_params = (
                     property_data['user_id'],
                     property_data['street'],
@@ -279,30 +254,26 @@ class PropertyCreationBulkInsertionService:
                 cursor.execute(INSERT_CUSTOMER_PROPERTY_INTO_PROPERTY_TABLE, property_params)
                 property_id = cursor.lastrowid
 
-                # Determine if this is a multifamily property (unit_number != -1)
                 unit_number = property_data['unit_number']
                 unit_id = None
 
-                if unit_number != -1:
-                    # Insert unit for multifamily property
+                if unit_number != str(-1):
                     unit_params = (property_id, unit_number)
                     cursor.execute(INSERT_UNITS_INTO_UNITS_TABLE, unit_params)
                     unit_id = cursor.lastrowid
 
-                # Insert appliances
                 for appliance in appliances:
                     appliance_params = (
                         property_id,
-                        unit_id,  # NULL for single-family, unit_id for multifamily
+                        unit_id,
                         appliance['appliance_type'],
                         appliance['appliance_brand'],
                         appliance['appliance_model'],
                         appliance['age_in_years'],
-                        None  # estimated_replacement_cost - will be calculated later
+                        None
                     )
                     cursor.execute(INSERT_PROPERTY_APPLIANCES_INTO_APPLIANCE_TABLE, appliance_params)
 
-                # Insert structures (always property-level, unit_id is NULL)
                 for structure in structures:
                     structure_params = (
                         property_id,
@@ -311,14 +282,12 @@ class PropertyCreationBulkInsertionService:
                     )
                     cursor.execute(INSERT_PROPERTY_STRUCTURES_INTO_STRUCTURES_TABLE, structure_params)
 
-            # Commit all changes
             cnx.commit()
             logging.info(f'Successfully inserted {len(data_to_upload)} properties with related data')
             logging.info(END_OF_METHOD)
             return insert_record_status
 
         except Exception as e:
-            # Rollback transaction on error
             if cnx:
                 cnx.rollback()
             logging.error('There was an issue bulk uploading to the table',
