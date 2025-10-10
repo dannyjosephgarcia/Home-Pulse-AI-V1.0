@@ -4,7 +4,8 @@
       "Bash(python:*)",
       "Bash(git add:*)",
       "Bash(test:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(pytest:*)"
     ],
     "deny": [],
     "ask": []

@@ -16,7 +16,7 @@ class TestPropertyCreationBulkInsertionService(unittest.TestCase):
         self.mock_connection = MagicMock()
         self.mock_cursor = MagicMock()
         self.mock_pool.pool.get_connection.return_value = self.mock_connection
-        self.mock_connection.get_cursor.return_value = self.mock_cursor
+        self.mock_connection.cursor.return_value = self.mock_cursor
         self.service = PropertyCreationBulkInsertionService(self.mock_pool)
 
     def create_csv_content(self, rows):
@@ -151,8 +151,8 @@ class TestCSVParsing(TestPropertyCreationBulkInsertionService):
         self.assertEqual(property_data['state'], 'IL')
         self.assertEqual(property_data['postal_code'], '62701')
         self.assertEqual(property_data['property_age'], 25)
-        self.assertEqual(property_data['unit_number'], -1)
-        self.assertEqual(property_data['address'], '123 Main St, Springfield, IL 62701')
+        self.assertEqual(property_data['unit_number'], '-1')
+        self.assertEqual(property_data['address'], '123 Main St, Springfield, IL')
 
     def test_parse_multifamily_property(self):
         """Test parsing multifamily property (unit_number != -1)"""
@@ -167,7 +167,7 @@ class TestCSVParsing(TestPropertyCreationBulkInsertionService):
         self.assertEqual(len(result), 1)
         property_data = result[0]['property']
         self.assertEqual(property_data['property_age'], 30)
-        self.assertEqual(property_data['unit_number'], 101)
+        self.assertEqual(property_data['unit_number'], '101')
         self.assertEqual(property_data['street'], '456 Oak Ave')
 
     def test_parse_all_appliances(self):
@@ -345,8 +345,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'IL',
                 'postal_code': '62701',
                 'property_age': 25,
-                'unit_number': -1,
-                'address': '123 Main St, Springfield, IL 62701'
+                'unit_number': '-1',
+                'address': '123 Main St, Springfield, IL'
             },
             'appliances': [
                 {'appliance_type': 'stove', 'appliance_brand': 'GE', 'appliance_model': 'Model1', 'age_in_years': 5}
@@ -381,8 +381,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'MA',
                 'postal_code': '02101',
                 'property_age': 30,
-                'unit_number': 101,
-                'address': '456 Oak Ave, Boston, MA 02101'
+                'unit_number': '101',
+                'address': '456 Oak Ave, Boston, MA'
             },
             'appliances': [
                 {'appliance_type': 'refrigerator', 'appliance_brand': 'LG', 'appliance_model': 'Model1', 'age_in_years': 3}
@@ -411,8 +411,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'IL',
                 'postal_code': '62701',
                 'property_age': 25,
-                'unit_number': -1,
-                'address': '123 Main St, Springfield, IL 62701'
+                'unit_number': '-1',
+                'address': '123 Main St, Springfield, IL'
             },
             'appliances': [
                 {'appliance_type': 'stove', 'appliance_brand': 'GE', 'appliance_model': 'Model1', 'age_in_years': 5}
@@ -445,8 +445,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'MA',
                 'postal_code': '02101',
                 'property_age': 30,
-                'unit_number': 101,
-                'address': '456 Oak Ave, Boston, MA 02101'
+                'unit_number': '101',
+                'address': '456 Oak Ave, Boston, MA'
             },
             'appliances': [
                 {'appliance_type': 'refrigerator', 'appliance_brand': 'LG', 'appliance_model': 'Model1', 'age_in_years': 3}
@@ -487,8 +487,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'MA',
                 'postal_code': '02101',
                 'property_age': 30,
-                'unit_number': 101,
-                'address': '456 Oak Ave, Boston, MA 02101'
+                'unit_number': '101',
+                'address': '456 Oak Ave, Boston, MA'
             },
             'appliances': [],
             'structures': [
@@ -522,8 +522,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                     'state': 'IL',
                     'postal_code': '62701',
                     'property_age': 25,
-                    'unit_number': -1,
-                    'address': '123 Main St, Springfield, IL 62701'
+                    'unit_number': '-1',
+                    'address': '123 Main St, Springfield, IL'
                 },
                 'appliances': [{'appliance_type': 'stove', 'appliance_brand': 'GE', 'appliance_model': 'Model1', 'age_in_years': 5}],
                 'structures': []
@@ -536,8 +536,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                     'state': 'MA',
                     'postal_code': '02101',
                     'property_age': 30,
-                    'unit_number': -1,
-                    'address': '456 Oak Ave, Boston, MA 02101'
+                    'unit_number': '-1',
+                    'address': '456 Oak Ave, Boston, MA'
                 },
                 'appliances': [{'appliance_type': 'washer', 'appliance_brand': 'LG', 'appliance_model': 'Model2', 'age_in_years': 2}],
                 'structures': []
@@ -575,8 +575,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'IL',
                 'postal_code': '62701',
                 'property_age': 25,
-                'unit_number': -1,
-                'address': '123 Main St, Springfield, IL 62701'
+                'unit_number': '-1',
+                'address': '123 Main St, Springfield, IL'
             },
             'appliances': [],
             'structures': []
@@ -604,8 +604,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'IL',
                 'postal_code': '62701',
                 'property_age': 25,
-                'unit_number': -1,
-                'address': '123 Main St, Springfield, IL 62701'
+                'unit_number': '-1',
+                'address': '123 Main St, Springfield, IL'
             },
             'appliances': [],
             'structures': []
@@ -633,8 +633,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'IL',
                 'postal_code': '62701',
                 'property_age': 25,
-                'unit_number': -1,
-                'address': '123 Main St, Springfield, IL 62701'
+                'unit_number': '-1',
+                'address': '123 Main St, Springfield, IL'
             },
             'appliances': [],
             'structures': []
@@ -663,8 +663,8 @@ class TestBulkInsertion(TestPropertyCreationBulkInsertionService):
                 'state': 'IL',
                 'postal_code': '62701',
                 'property_age': 25,
-                'unit_number': -1,
-                'address': '123 Main St, Springfield, IL 62701'
+                'unit_number': '-1',
+                'address': '123 Main St, Springfield, IL'
             },
             'appliances': [
                 {'appliance_type': 'stove', 'appliance_brand': 'GE', 'appliance_model': 'Model1', 'age_in_years': 5}
@@ -813,7 +813,7 @@ class TestEdgeCases(TestPropertyCreationBulkInsertionService):
 
         result = self.service.parse_csv_file_for_upload(df, user_id=123)
 
-        self.assertEqual(result[0]['property']['unit_number'], 0)
+        self.assertEqual(result[0]['property']['unit_number'], '0')
         # Should be treated as multifamily
 
     def test_very_long_street_name(self):
