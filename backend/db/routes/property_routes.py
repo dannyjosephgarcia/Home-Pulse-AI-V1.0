@@ -46,8 +46,9 @@ def bulk_upload_property_information_from_csv(ctx,
                                               Provide[Container.property_creation_bulk_insertion_service]):
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     logging.info(START_OF_METHOD)
+    user_id = request.user_id
     property_creation_bulk_request = PropertyCreationBulkRequest(request.files)
-    response = property_creation_bulk_insertion_service.bulk_upload_properties_into_db(property_creation_bulk_request)
+    response = property_creation_bulk_insertion_service.bulk_upload_properties_into_db(property_creation_bulk_request, user_id)
     logging.info(END_OF_METHOD)
     return jsonify(response)
 
