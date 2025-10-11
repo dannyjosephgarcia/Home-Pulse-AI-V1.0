@@ -34,6 +34,8 @@ from backend.db.service.property_creation_bulk_insertion_service import Property
 from backend.db.service.property_needs_attention_retrieval_service import PropertyNeedsAttentionRetrievalService
 from backend.db.service.unit_retrieval_service import UnitRetrievalService
 from backend.db.service.unit_appliance_retrieval_service import UnitApplianceRetrievalService
+from backend.db.service.property_note_insertion_service import PropertyNoteInsertionService
+from backend.db.service.property_note_retrieval_service import PropertyNoteRetrievalService
 
 
 class Container(containers.DeclarativeContainer):
@@ -165,3 +167,13 @@ class Container(containers.DeclarativeContainer):
 
     unit_appliance_retrieval_service = providers.Singleton(UnitApplianceRetrievalService,
                                                            home_pulse_db_connection_pool)
+
+    property_note_insertion_service = providers.Singleton(PropertyNoteInsertionService,
+                                                          home_pulse_db_connection_pool,
+                                                          s3_client,
+                                                          config.aws.bucket_name)
+
+    property_note_retrieval_service = providers.Singleton(PropertyNoteRetrievalService,
+                                                          home_pulse_db_connection_pool,
+                                                          s3_client,
+                                                          config.aws.bucket_name)

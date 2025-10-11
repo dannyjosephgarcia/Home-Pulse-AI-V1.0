@@ -172,3 +172,10 @@ VERIFY_UNIT_OWNERSHIP = """SELECT u.unit_id
 FROM home_pulse_ai.units u
 JOIN home_pulse_ai.properties p ON u.property_id = p.id
 WHERE u.unit_id = %s AND p.user_id = %s;"""
+
+INSERT_PROPERTY_NOTE = """INSERT INTO home_pulse_ai.property_notes
+(user_id, property_id, entity_type, entity_id, file_path) VALUES (%s, %s, %s, %s, %s);"""
+
+FETCH_PROPERTY_NOTES = """SELECT id, property_id, user_id, entity_type, entity_id, file_path, created_at, updated_at
+FROM home_pulse_ai.property_notes
+WHERE property_id = %s AND user_id = %s"""
