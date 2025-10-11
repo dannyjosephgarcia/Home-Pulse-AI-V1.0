@@ -14,6 +14,7 @@ from backend.db.model.property_image_insertion_request import PropertyImageInser
 from backend.db.model.update_tenant_information_request import UpdateTenantInformationRequest
 from backend.db.model.update_appliance_information_request import UpdateApplianceInformationRequest
 from backend.db.model.update_structure_information_request import UpdateStructureInformationRequest
+from backend.db.model.property_note_insertion_request import PropertyNoteInsertionRequest
 
 property_routes_blueprint = Blueprint('property_routes_blueprint', __name__)
 
@@ -278,11 +279,11 @@ def fetch_property_image_url(ctx,
 @csrf.exempt
 @token_required
 @inject
-def insert_property_image_and_(ctx,
-                               property_id,
-                               customer_id,
-                               property_image_insertion_service=
-                               Provide[Container.property_image_insertion_service]):
+def insert_property_image_url(ctx,
+                              property_id,
+                              customer_id,
+                              property_image_insertion_service=
+                              Provide[Container.property_image_insertion_service]):
     logging.info(START_OF_METHOD)
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     property_image_request = PropertyImageInsertionRequest(request.get_json())
@@ -323,5 +324,51 @@ def fetch_appliances_for_unit(ctx,
     ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
     user_id = request.user_id
     response = unit_appliance_retrieval_service.fetch_appliances_by_unit_id(unit_id=int(unit_id), user_id=user_id)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/notes', methods=['POST'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def insert_property_note_url(ctx,
+                              property_id,
+                              property_note_insertion_service=
+                              Provide[Container.property_note_insertion_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    user_id = request.user_id
+    property_note_request = PropertyNoteInsertionRequest(request.get_json())
+    response = property_note_insertion_service.insert_and_sign_property_note_url(
+        user_id,
+        property_id,
+        property_note_request.entity_type,
+        property_note_request.entity_id,
+        property_note_request.file_name)
+    logging.info(END_OF_METHOD)
+    return jsonify(response)
+
+
+@property_routes_blueprint.route('/v1/properties/<property_id>/notes', methods=['GET'])
+@mdc.with_mdc(domain='home-pulse', subdomain='/v1/properties')
+@csrf.exempt
+@token_required
+@inject
+def fetch_property_notes(ctx,
+                         property_id,
+                         property_note_retrieval_service=
+                         Provide[Container.property_note_retrieval_service]):
+    logging.info(START_OF_METHOD)
+    ctx.correlationId = request.headers.get('correlation-id', uuid.uuid4().__str__())
+    user_id = request.user_id
+    entity_type = request.args.get('entityType')
+    entity_id = request.args.get('entityId')
+    response = property_note_retrieval_service.fetch_property_notes_with_content(
+        property_id=property_id,
+        user_id=user_id,
+        entity_type=entity_type,
+        entity_id=entity_id)
     logging.info(END_OF_METHOD)
     return jsonify(response)

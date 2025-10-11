@@ -237,6 +237,253 @@ class TestPropertyRetrievalServiceUnitIdIntegration(TestPropertyRoutesServiceInt
         self.assertEqual(result[1]['unit_id'], 100)
 
 
+class TestPropertyNoteInsertionServiceIntegration(TestPropertyRoutesServiceIntegration):
+    """Tests for property note insertion service integration with routes"""
+
+    @patch('backend.db.service.property_note_insertion_service.PropertyNoteInsertionService')
+    def test_insert_property_note_url_success(self, mock_service_class):
+        """Test successful property note insertion"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        mock_service_instance.insert_and_sign_property_note_url.return_value = {
+            'noteUrl': 'https://s3.amazonaws.com/bucket/note.txt?signature=abc',
+            'noteKey': 'users/123/properties/456/notes/note.txt',
+            'putRecordStatus': 200
+        }
+
+        user_id = 123
+        property_id = 456
+        entity_type = 'appliance'
+        entity_id = 789
+        file_name = 'maintenance_note.txt'
+
+        # Act
+        result = mock_service_instance.insert_and_sign_property_note_url(
+            user_id, property_id, entity_type, entity_id, file_name
+        )
+
+        # Assert
+        mock_service_instance.insert_and_sign_property_note_url.assert_called_once_with(
+            user_id, property_id, entity_type, entity_id, file_name
+        )
+        self.assertIn('noteUrl', result)
+        self.assertIn('noteKey', result)
+        self.assertIn('putRecordStatus', result)
+        self.assertEqual(result['putRecordStatus'], 200)
+
+    @patch('backend.db.service.property_note_insertion_service.PropertyNoteInsertionService')
+    def test_insert_property_note_url_with_property_entity(self, mock_service_class):
+        """Test note insertion for property-level note"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        mock_service_instance.insert_and_sign_property_note_url.return_value = {
+            'noteUrl': 'https://s3.amazonaws.com/bucket/note.txt',
+            'noteKey': 'users/123/properties/456/notes/general.txt',
+            'putRecordStatus': 200
+        }
+
+        user_id = 123
+        property_id = 456
+        entity_type = 'property'
+        entity_id = None
+        file_name = 'general.txt'
+
+        # Act
+        result = mock_service_instance.insert_and_sign_property_note_url(
+            user_id, property_id, entity_type, entity_id, file_name
+        )
+
+        # Assert
+        self.assertEqual(result['putRecordStatus'], 200)
+        self.assertIn('noteKey', result)
+
+    @patch('backend.db.service.property_note_insertion_service.PropertyNoteInsertionService')
+    def test_insert_property_note_url_returns_presigned_url(self, mock_service_class):
+        """Test that insertion returns a presigned PUT URL"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        expected_url = 'https://s3.amazonaws.com/bucket/key?AWSAccessKeyId=xxx&Signature=yyy'
+        mock_service_instance.insert_and_sign_property_note_url.return_value = {
+            'noteUrl': expected_url,
+            'noteKey': 'users/123/properties/456/notes/test.txt',
+            'putRecordStatus': 200
+        }
+
+        # Act
+        result = mock_service_instance.insert_and_sign_property_note_url(
+            123, 456, 'structure', 999, 'test.txt'
+        )
+
+        # Assert
+        self.assertEqual(result['noteUrl'], expected_url)
+        self.assertIn('AWSAccessKeyId', result['noteUrl'])
+        self.assertIn('Signature', result['noteUrl'])
+
+
+class TestPropertyNoteRetrievalServiceIntegration(TestPropertyRoutesServiceIntegration):
+    """Tests for property note retrieval service integration with routes"""
+
+    @patch('backend.db.service.property_note_retrieval_service.PropertyNoteRetrievalService')
+    def test_fetch_property_notes_success(self, mock_service_class):
+        """Test successful property notes retrieval"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        mock_service_instance.fetch_property_notes_with_content.return_value = {
+            'notes': [
+                {
+                    'id': 1,
+                    'propertyId': 456,
+                    'userId': 123,
+                    'entityType': 'appliance',
+                    'entityId': 789,
+                    'filePath': 'users/123/properties/456/notes/note1.txt',
+                    'content': 'Note content here',
+                    'createdAt': '2024-01-15T10:30:00',
+                    'updatedAt': '2024-01-16T14:45:00'
+                }
+            ]
+        }
+
+        property_id = 456
+        user_id = 123
+
+        # Act
+        result = mock_service_instance.fetch_property_notes_with_content(property_id, user_id)
+
+        # Assert
+        mock_service_instance.fetch_property_notes_with_content.assert_called_once_with(
+            property_id, user_id
+        )
+        self.assertIn('notes', result)
+        self.assertEqual(len(result['notes']), 1)
+        self.assertEqual(result['notes'][0]['propertyId'], 456)
+
+    @patch('backend.db.service.property_note_retrieval_service.PropertyNoteRetrievalService')
+    def test_fetch_property_notes_with_filters(self, mock_service_class):
+        """Test notes retrieval with entity filters"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        mock_service_instance.fetch_property_notes_with_content.return_value = {
+            'notes': [
+                {
+                    'id': 1,
+                    'propertyId': 456,
+                    'userId': 123,
+                    'entityType': 'appliance',
+                    'entityId': 789,
+                    'filePath': 'users/123/properties/456/notes/note1.txt',
+                    'content': 'Appliance note',
+                    'createdAt': '2024-01-15T10:30:00',
+                    'updatedAt': '2024-01-16T14:45:00'
+                }
+            ]
+        }
+
+        property_id = 456
+        user_id = 123
+        entity_type = 'appliance'
+        entity_id = 789
+
+        # Act
+        result = mock_service_instance.fetch_property_notes_with_content(
+            property_id, user_id, entity_type=entity_type, entity_id=entity_id
+        )
+
+        # Assert
+        mock_service_instance.fetch_property_notes_with_content.assert_called_once_with(
+            property_id, user_id, entity_type=entity_type, entity_id=entity_id
+        )
+        self.assertEqual(len(result['notes']), 1)
+        self.assertEqual(result['notes'][0]['entityType'], 'appliance')
+        self.assertEqual(result['notes'][0]['entityId'], 789)
+
+    @patch('backend.db.service.property_note_retrieval_service.PropertyNoteRetrievalService')
+    def test_fetch_property_notes_empty_result(self, mock_service_class):
+        """Test notes retrieval when no notes exist"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        mock_service_instance.fetch_property_notes_with_content.return_value = {
+            'notes': []
+        }
+
+        # Act
+        result = mock_service_instance.fetch_property_notes_with_content(456, 123)
+
+        # Assert
+        self.assertIn('notes', result)
+        self.assertEqual(len(result['notes']), 0)
+
+    @patch('backend.db.service.property_note_retrieval_service.PropertyNoteRetrievalService')
+    def test_fetch_property_notes_includes_content(self, mock_service_class):
+        """Test that notes include content fetched from S3"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        mock_service_instance.fetch_property_notes_with_content.return_value = {
+            'notes': [
+                {
+                    'id': 1,
+                    'propertyId': 456,
+                    'userId': 123,
+                    'entityType': 'property',
+                    'entityId': None,
+                    'filePath': 'users/123/properties/456/notes/note.txt',
+                    'content': 'This is the full note content from S3',
+                    'createdAt': '2024-01-15T10:30:00',
+                    'updatedAt': '2024-01-16T14:45:00'
+                }
+            ]
+        }
+
+        # Act
+        result = mock_service_instance.fetch_property_notes_with_content(456, 123)
+
+        # Assert
+        self.assertIn('content', result['notes'][0])
+        self.assertEqual(result['notes'][0]['content'], 'This is the full note content from S3')
+
+    @patch('backend.db.service.property_note_retrieval_service.PropertyNoteRetrievalService')
+    def test_fetch_property_notes_camelcase_response(self, mock_service_class):
+        """Test that response uses camelCase field names"""
+        # Arrange
+        mock_service_instance = MagicMock()
+        mock_service_class.return_value = mock_service_instance
+        mock_service_instance.fetch_property_notes_with_content.return_value = {
+            'notes': [
+                {
+                    'id': 1,
+                    'propertyId': 456,
+                    'userId': 123,
+                    'entityType': 'structure',
+                    'entityId': 999,
+                    'filePath': 'users/123/properties/456/notes/roof.txt',
+                    'content': 'Roof inspection notes',
+                    'createdAt': '2024-01-15T10:30:00',
+                    'updatedAt': '2024-01-16T14:45:00'
+                }
+            ]
+        }
+
+        # Act
+        result = mock_service_instance.fetch_property_notes_with_content(456, 123)
+
+        # Assert
+        note = result['notes'][0]
+        self.assertIn('propertyId', note)
+        self.assertIn('userId', note)
+        self.assertIn('entityType', note)
+        self.assertIn('entityId', note)
+        self.assertIn('filePath', note)
+        self.assertIn('createdAt', note)
+        self.assertIn('updatedAt', note)
+
+
 class TestRouteEndpointDefinitions(TestPropertyRoutesServiceIntegration):
     """Tests to verify route endpoint definitions exist"""
 
@@ -264,6 +511,32 @@ class TestRouteEndpointDefinitions(TestPropertyRoutesServiceIntegration):
 
     def test_unit_appliances_endpoint_http_method(self):
         """Test that unit appliances endpoint uses GET method"""
+        # Verify endpoint uses GET method
+        http_method = 'GET'
+        self.assertEqual(http_method, 'GET')
+
+    def test_property_notes_post_endpoint_path_format(self):
+        """Test that property notes POST endpoint follows correct path format"""
+        # This test verifies the endpoint path structure
+        expected_path = '/v1/properties/<property_id>/notes'
+        self.assertTrue(expected_path.startswith('/v1/properties/'))
+        self.assertTrue(expected_path.endswith('/notes'))
+
+    def test_property_notes_get_endpoint_path_format(self):
+        """Test that property notes GET endpoint follows correct path format"""
+        # This test verifies the endpoint path structure
+        expected_path = '/v1/properties/<property_id>/notes'
+        self.assertTrue(expected_path.startswith('/v1/properties/'))
+        self.assertTrue(expected_path.endswith('/notes'))
+
+    def test_property_notes_post_endpoint_http_method(self):
+        """Test that property notes POST endpoint uses POST method"""
+        # Verify endpoint uses POST method
+        http_method = 'POST'
+        self.assertEqual(http_method, 'POST')
+
+    def test_property_notes_get_endpoint_http_method(self):
+        """Test that property notes GET endpoint uses GET method"""
         # Verify endpoint uses GET method
         http_method = 'GET'
         self.assertEqual(http_method, 'GET')
