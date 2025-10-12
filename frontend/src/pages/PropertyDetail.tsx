@@ -8,7 +8,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload, Edit, Save, X, ChevronDown, ChevronRight, Building2, DoorOpen } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { ArrowLeft, Home, Wrench, Building, MapPin, Image, Upload, Edit, Save, X, ChevronDown, ChevronRight, Building2, DoorOpen, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { HomeBot } from '../components/HomeBot';
 import 'leaflet/dist/leaflet.css';
@@ -81,6 +82,12 @@ const PropertyDetail = () => {
   const [editingStructures, setEditingStructures] = useState<{ [key: number]: Structure }>({});
   const [isUpdatingAppliances, setIsUpdatingAppliances] = useState(false);
   const [isUpdatingStructures, setIsUpdatingStructures] = useState(false);
+  const [notes, setNotes] = useState<any[]>([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+  const [showAddNote, setShowAddNote] = useState(false);
+  const [newNoteContent, setNewNoteContent] = useState('');
+  const [newNoteEntityType, setNewNoteEntityType] = useState<'property' | 'appliance' | 'structure'>('property');
+  const [newNoteEntityId, setNewNoteEntityId] = useState<number | undefined>();
 
   // Fix for default marker icons in react-leaflet
   delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -94,6 +101,7 @@ const PropertyDetail = () => {
     if (propertyId) {
       fetchPropertyData();
       fetchPropertyImage();
+      fetchPropertyNotes();
     }
   }, [propertyId]);
 
@@ -440,6 +448,84 @@ const PropertyDetail = () => {
       toast.error('Network error while updating structures');
     } finally {
       setIsUpdatingStructures(false);
+    }
+  };
+
+  const fetchPropertyNotes = async () => {
+    if (!propertyId) return;
+
+    setIsLoadingNotes(true);
+    try {
+      const id = parseInt(propertyId);
+      const { data, error } = await apiClient.getPropertyNotes(id);
+
+      if (error) {
+        console.error('Error fetching notes:', error);
+        toast.error('Failed to load notes');
+        setNotes([]);
+      } else {
+        // Sort notes by createdAt in descending order (newest first)
+        const sortedNotes = (data?.notes || []).sort((a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setNotes(sortedNotes);
+      }
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      toast.error('Failed to load notes');
+      setNotes([]);
+    } finally {
+      setIsLoadingNotes(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNoteContent.trim() || !propertyId || !user) return;
+
+    try {
+      const id = parseInt(propertyId);
+      const fileName = `note_${Date.now()}.txt`;
+
+      // Step 1: Get presigned URL from backend
+      const { data: uploadData, error: uploadError } = await apiClient.createPropertyNote(
+        id,
+        fileName,
+        newNoteEntityType,
+        newNoteEntityId
+      );
+
+      if (uploadError || !uploadData?.noteUrl) {
+        toast.error('Failed to prepare note upload');
+        return;
+      }
+
+      // Step 2: Upload note content to S3 using presigned URL
+      const noteBlob = new Blob([newNoteContent], { type: 'text/plain' });
+      const uploadResponse = await fetch(uploadData.noteUrl, {
+        method: 'PUT',
+        body: noteBlob,
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload note to S3');
+      }
+
+      toast.success('Note added successfully');
+
+      // Reset form
+      setNewNoteContent('');
+      setNewNoteEntityType('property');
+      setNewNoteEntityId(undefined);
+      setShowAddNote(false);
+
+      // Refresh notes
+      await fetchPropertyNotes();
+    } catch (error) {
+      console.error('Error adding note:', error);
+      toast.error('Failed to add note');
     }
   };
 
@@ -1096,7 +1182,7 @@ const PropertyDetail = () => {
           </div>
 
           {/* Map Section */}
-          <div className="h-2/3 flex flex-col">
+          <div className="flex-1 flex flex-col overflow-y-auto">
             {/* Auto-locate Button */}
             <div className="p-4 pb-2">
               <Card className="bg-white/10 backdrop-blur-md border-white/20">
@@ -1113,8 +1199,8 @@ const PropertyDetail = () => {
             </div>
 
             {/* Map Container */}
-            <div className="flex-1 p-4 pt-2">
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 h-full">
+            <div className="p-4 pt-2">
+              <Card className="bg-white/10 backdrop-blur-md border-white/20" style={{ height: '300px' }}>
                 <CardHeader>
                   <CardTitle className="text-white flex items-center space-x-2">
                     <MapPin className="h-5 w-5" />
@@ -1156,6 +1242,145 @@ const PropertyDetail = () => {
                           Address: {property.address || 'No address available'}
                         </p>
                       </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Property Notes Section */}
+            <div className="p-4 pt-2">
+              <Card className="bg-white/10 backdrop-blur-md border-white/20" style={{ maxHeight: '400px' }}>
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Edit className="h-5 w-5" />
+                      <span>Property Notes ({notes.length})</span>
+                    </div>
+                    <Button
+                      onClick={() => setShowAddNote(!showAddNote)}
+                      size="sm"
+                      variant="outline"
+                      className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {showAddNote ? 'Cancel' : 'Add Note'}
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="overflow-y-auto" style={{ maxHeight: '320px' }}>
+                  {/* Add Note Form */}
+                  {showAddNote && (
+                    <div className="mb-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-white/70 text-sm">Note Type</Label>
+                          <Select
+                            value={newNoteEntityType}
+                            onValueChange={(value: any) => {
+                              setNewNoteEntityType(value);
+                              setNewNoteEntityId(undefined);
+                            }}
+                          >
+                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background border-border">
+                              <SelectItem value="property">General Property Note</SelectItem>
+                              <SelectItem value="appliance">Appliance Note</SelectItem>
+                              <SelectItem value="structure">Structure Note</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {newNoteEntityType === 'appliance' && appliances.length > 0 && (
+                          <div>
+                            <Label className="text-white/70 text-sm">Select Appliance</Label>
+                            <Select
+                              value={newNoteEntityId?.toString()}
+                              onValueChange={(value) => setNewNoteEntityId(parseInt(value))}
+                            >
+                              <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                                <SelectValue placeholder="Choose appliance..." />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background border-border">
+                                {appliances.map((appliance) => (
+                                  <SelectItem key={appliance.id} value={appliance.id.toString()}>
+                                    {appliance.appliance_type}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        {newNoteEntityType === 'structure' && structures.length > 0 && (
+                          <div>
+                            <Label className="text-white/70 text-sm">Select Structure</Label>
+                            <Select
+                              value={newNoteEntityId?.toString()}
+                              onValueChange={(value) => setNewNoteEntityId(parseInt(value))}
+                            >
+                              <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                                <SelectValue placeholder="Choose structure..." />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background border-border">
+                                {structures.map((structure) => (
+                                  <SelectItem key={structure.id} value={structure.id.toString()}>
+                                    {structure.structure_type}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        <div>
+                          <Label className="text-white/70 text-sm">Note Content</Label>
+                          <textarea
+                            value={newNoteContent}
+                            onChange={(e) => setNewNoteContent(e.target.value)}
+                            className="w-full min-h-[100px] bg-white/10 border border-white/20 rounded-md p-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+                            placeholder="Enter your note here..."
+                          />
+                        </div>
+
+                        <Button
+                          onClick={handleAddNote}
+                          disabled={!newNoteContent.trim()}
+                          className="bg-green-600 hover:bg-green-700 text-white w-full"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Note
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notes List */}
+                  {isLoadingNotes ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+                    </div>
+                  ) : notes.length === 0 ? (
+                    <p className="text-white/70 text-center py-4">No notes yet. Add your first note!</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {notes.map((note) => (
+                        <div key={note.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="px-2 py-1 bg-white/10 rounded text-xs text-white/80 capitalize">
+                                {note.entityType}
+                              </span>
+                              <span className="text-white/60 text-xs">
+                                {new Date(note.createdAt).toLocaleDateString()} {new Date(note.createdAt).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-white/90 text-sm whitespace-pre-wrap">{note.content}</p>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </CardContent>

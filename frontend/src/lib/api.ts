@@ -1,6 +1,6 @@
-// const API_BASE_URL = 'https://home-pulse-api.onrender.com';
+const API_BASE_URL = 'https://home-pulse-api.onrender.com';
 
-const API_BASE_URL = 'http://localhost:5000';
+// const API_BASE_URL = 'http://localhost:5000';
 
 
 // Token management
@@ -267,6 +267,39 @@ class ApiClient {
   async getUnitAppliances(unitId: number): Promise<{ data: any[] | null; error: any }> {
     return this.request(`/v1/units/${unitId}/appliances`, {
       method: 'GET',
+    });
+  }
+
+  // Property notes endpoints
+  async getPropertyNotes(
+    propertyId: number,
+    entityType?: string,
+    entityId?: number
+  ): Promise<{ data: any | null; error: any }> {
+    const params = new URLSearchParams();
+    if (entityType) params.append('entityType', entityType);
+    if (entityId) params.append('entityId', entityId.toString());
+
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+
+    return this.request(`/v1/properties/${propertyId}/notes${queryString}`, {
+      method: 'GET',
+    });
+  }
+
+  async createPropertyNote(
+    propertyId: number,
+    fileName: string,
+    entityType?: string,
+    entityId?: number
+  ): Promise<{ data: any | null; error: any }> {
+    return this.request(`/v1/properties/${propertyId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName,
+        entityType: entityType || 'property',
+        entityId
+      }),
     });
   }
 }

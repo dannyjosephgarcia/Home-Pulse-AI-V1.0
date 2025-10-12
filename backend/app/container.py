@@ -43,6 +43,8 @@ class Container(containers.DeclarativeContainer):
     stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
     config = providers.Configuration(yaml_files=[f"./backend/app/config-{env}.yaml"])
 
+    print(env)
+
     home_pulse_db_connection_pool = providers.Singleton(HpAIDbConnectionPool,
                                                         config.home_pulse_ai_db.host,
                                                         config.home_pulse_ai_db.port,
