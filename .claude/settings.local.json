@@ -5,7 +5,8 @@
       "Bash(git add:*)",
       "Bash(test:*)",
       "Bash(npm run lint)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

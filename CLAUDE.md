@@ -115,6 +115,7 @@ The MySQL database (`home_pulse_ai`) contains the following core tables:
 - **appliance_information**: Reference table for appliance pricing data
 - **tenants**: Tenant information with optional `unit_id` (multifamily) or `property_id` only (single-family)
 - **property_images**: S3 image keys linked to properties
+- **property_notes**: S3 note file paths linked to properties, with entity associations (property/appliance/structure)
 
 All SQL statements are centralized in `backend/db/model/query/sql_statements.py` for maintainability.
 
@@ -176,6 +177,8 @@ The API follows RESTful conventions with versioned endpoints under `/v1/`:
   - `GET /v1/properties/{property_id}/units` - Returns units for multifamily properties
   - `GET /v1/properties/{property_id}/appliances` - Returns property-level appliances (single-family)
   - `GET /v1/properties/{property_id}/structures` - Returns structures (all property types)
+  - `GET /v1/properties/{property_id}/notes` - Returns notes with content from S3 (supports `entityType` and `entityId` query params)
+  - `POST /v1/properties/{property_id}/notes` - Creates note record and returns presigned S3 URL for upload
 - Units: `/v1/units/*`
   - `GET /v1/units/{unit_id}/appliances` - Returns unit-level appliances (multifamily)
 - Payments: Stripe webhooks and session creation
@@ -190,7 +193,10 @@ Authentication uses JWT tokens stored in localStorage on the frontend. Token val
 
 ## Key Integration Points
 
-- **AWS S3**: Property image storage via `S3Client`
+- **AWS S3**: Property image and note file storage via `S3Client`
+  - Images: `users/{user_id}/properties/{property_id}/{file_name}`
+  - Notes: `users/{user_id}/properties/{property_id}/notes/{file_name}`
+  - Uses presigned URLs for secure uploads (PUT) and downloads (GET)
 - **AWS Sagemaker**: LLM inference via `SagemakerClient`
 - **Stripe**: Subscription payments with webhook handlers
 - **Lowes**: Appliance price scraping via Playwright
